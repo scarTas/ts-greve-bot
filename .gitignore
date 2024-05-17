@@ -1,0 +1,8 @@
+# Bloat
+node_modules
+dist
+volumes
+coverage
+
+# Sensitive data
+.env*

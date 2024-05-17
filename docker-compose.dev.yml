@@ -1,0 +1,79 @@
+# OBSOLETE: Docker Compose Version - specifies format and available features.
+# version: '3.8'
+
+#! docker-compose automatically loads environment variables from .env files
+
+## ==== NETWORKS ============================================================ ##
+## Defines the custom networks to be created and used by the services.
+networks:
+  haram-leotta-network:
+    # IP Address Management settings: default driver, subnet in CIDR format.
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+
+## ==== SERVICES ============================================================ ##
+## Defines the services (containers) that make up the application.
+## Service names ar arbitrary and used for automatic container name generation.
+## Service names are used for DNS resolution inside the Docker private network.
+services:
+
+  # ==== MONGO =============================================================== #
+  haram-leotta-mongo:
+
+    # Custom container name, image to be used and environment variables.
+    container_name: haram-leotta-mongo
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+
+    # Custom network settings - use haram-leotta network with static address.
+    networks:
+      haram-leotta-network:
+        ipv4_address: 172.20.0.3
+
+    # Bind Database data to local target directory
+    # If the database has yet to be initialized, use the init script to set up users and collections
+    volumes:
+      - ./volumes/mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+    #! TEST ONLY - Map ports between host and container - allow external access.
+    ports:
+      - "27017:27017"
+
+  # ==== NODE ================================================================ #
+  haram-leotta-node:
+
+    # Custom container name and environment variables.
+    container_name: haram-leotta-node
+    environment:
+      # MongoDB configuration
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_DB: ${MONGO_DB}
+      MONGO_HOST: haram-leotta-mongo
+      MONGO_PORT: 27017
+      # DiscordJS configuration
+      TOKEN: ${TOKEN}
+      PREFIX: ${PREFIX}
+      # Node configuration
+      NODE_ENV: dev
+      VERSION: ${VERSION}
+
+    # Build image from Dockerfile in the current directory and override its CMD.
+    build: .
+    command: npm run start
+    image: haram-leotta-node:latest
+
+    # Spring depends on postgres and mongo; ensure they start before spring.
+    depends_on:
+      - haram-leotta-mongo
+
+    # Custom network settings - use haram-leotta network; no need for a static address.
+    networks:
+      - haram-leotta-network

@@ -1,0 +1,12 @@
+# Bloat
+**/node_modules
+**/dist
+
+# Local deploy files
+Makefile
+docker-compose.*
+Dockerfile
+mongo-init.js
+.dockerignore
+.gitignore
+.env*
