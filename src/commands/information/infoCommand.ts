@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
+import HaramLeotta from "../..";
 
 /** Define command metadata and handler methods for text and slash commands. */
 export const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
@@ -9,17 +10,17 @@ export const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[]
     aliases: ["info"], usage: "`ham info`",
     
     // Actual core command with business logic implementation
-    command: (self, _input, callback) => {
+    command: (_input, callback) => {
         const embed: EmbedBuilder = new EmbedBuilder()
-            .setColor(self.embedColor)
+            .setColor(HaramLeotta.get().embedColor)
             .setTitle("Haram Leotta informations")
-            .setThumbnail(self.user?.avatarURL() as string | null)
+            .setThumbnail(HaramLeotta.get().user?.avatarURL() as string | null)
             .addFields(
                 { name: "First name",   value: "Haram",                 inline: true },
                 { name: "Middle name",  value: "Ibra",                  inline: true },
                 { name: "Surname",      value: "Leotta",                inline: true },
                 { name: "Birthday",     value: "December 17st, 2020",   inline: true },
-                { name: "Version",      value: self.version,            inline: true }
+                { name: "Version",      value: HaramLeotta.get().version,            inline: true }
             )
             //.setFooter({text:`Created by Boquobbo#5645            Special Thanks to Depa`})
     
@@ -28,8 +29,8 @@ export const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[]
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, _args, command) =>
-        command(self, null, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, _args, command) =>
+        command(null, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 import { commandMetadatas, getSimpleMessageCallback } from "../../events/onMessageCreate";
+import HaramLeotta from "../..";
 
 /** Define command metadata and handler methods for text and slash commands. */
 export const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedBuilder[] }> = {
@@ -11,10 +12,10 @@ export const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds:
     \n`ham help drip` // Displays info and usage of `drip` command",
     
     // Actual core command with business logic implementation
-    command: (self, { command }, callback) => {
+    command: ({ command }, callback) => {
         //const embed = command ? generalHelpEmbed : getCommandEmbed(command);
         const embed = new EmbedBuilder()
-        .setColor(self.embedColor);
+        .setColor(HaramLeotta.get().embedColor);
     
         // If the command arguments has been passed and it is an actual command,
         // create embed for the specific requested command and add more information
@@ -54,8 +55,8 @@ export const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds:
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, args, command) =>
-        command(self, { command: args[0] }, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, args, command) =>
+        command({ command: args[0] }, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

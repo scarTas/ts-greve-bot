@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 
 /** Coinflip possible outcomes - always 2 */
 const emojis: string[] = [":head_bandage:", ":cross:"];
@@ -11,7 +11,7 @@ export const coinflipCommandMetadata: CommandMetadata<null, { content: string }>
     aliases: ["coinflip", "coin"], usage: "`ham coinflip`",
     
     // Actual core command with business logic implementation
-    command: (_self, _input, callback) => {
+    command: (_input, callback) => {
         // Generate number between 0 (inclusive) and 2 (exclusive)
         const rand: number = Math.floor(Math.random() * 2);
 
@@ -21,8 +21,8 @@ export const coinflipCommandMetadata: CommandMetadata<null, { content: string }>
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, _args, command) =>
-        command(self, null, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, _args, command) =>
+        command(null, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

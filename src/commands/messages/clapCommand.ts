@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 
 /** String tu be used to join the "clapped" elements. */
 const clap = ' :clap_tone5: ';
@@ -12,7 +12,7 @@ export const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content
     \n`ham clap sei un coglione` // sei :clap_tone5: un :clap_tone5: coglione",
     
     // Actual core command with business logic implementation
-    command: (_self, { words }, callback) => {
+    command: ({ words }, callback) => {
         // If there are no arguments, don't call the callback and return
         if(!words.length) return;
     
@@ -25,8 +25,8 @@ export const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, args, command) =>
-        command(self, { words: args }, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, args, command) =>
+        command({ words: args }, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

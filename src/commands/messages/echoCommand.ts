@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
 export const echoCommandMetadata: CommandMetadata<{ content: string }, { content: string }> = {
@@ -8,13 +8,13 @@ export const echoCommandMetadata: CommandMetadata<{ content: string }, { content
     usage: "`ham echo yoooooo` // Repeats `yoooooo`",
     
     // Actual core command with business logic implementation
-    command: (_self, { content }, callback) =>
+    command: ({ content }, callback) =>
         callback({ content }),
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, content, _args, command) =>
-        command(self, { content }, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, content, _args, command) =>
+        command({ content }, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

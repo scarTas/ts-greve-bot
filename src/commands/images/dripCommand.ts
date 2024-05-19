@@ -1,5 +1,5 @@
 import { AttachmentBuilder, User } from "discord.js";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { getUserFromMessage } from "./picCommand";
 import Jimp from "jimp";
@@ -18,7 +18,7 @@ export const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }
     \n`ham drip emre` // Same",
 
     // Actual core command with business logic implementation
-    command: (_self, { user, file }, callback) => {
+    command: ({ user, file }, callback) => {
 
         // Use input file or retrieve profile picture from input user
         // If no argument is defined, don't do anything
@@ -33,12 +33,12 @@ export const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, args, command) => {
+    onMessageCreateTransformer: (msg, _content, args, command) => {
         const arg = args[0];
 
         // If the first argument is a file path, directly use it
         if(fileRegex.test(arg)) {
-            command(self, { file: arg }, getSimpleMessageCallback(msg))
+            command({ file: arg }, getSimpleMessageCallback(msg))
         }
 
         // Try to retrieve the mentioned or written user from the first argument
@@ -46,7 +46,7 @@ export const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
         .then( user => {
-            user && command(self, { user }, getSimpleMessageCallback(msg))
+            user && command({ user }, getSimpleMessageCallback(msg))
         })
     }
 

@@ -82,11 +82,11 @@ export default class HaramLeotta extends Client {
         this.login(process.env.TOKEN);
 
         // On bot login event, execute only once     
-        this.once("ready", onReady.bind(null, this));
+        this.once("ready", onReady);
         this.logger.info("Listening on event 'ready'");
 
         // On message created (sent), execute every time  
-        this.on("messageCreate", onMessageCreate.bind(null, this));
+        this.on("messageCreate", onMessageCreate);
         this.logger.info("Listening on event 'messageCreate'");
     }
 
@@ -108,6 +108,5 @@ HaramLeotta.get().init();
 
 /*
 process.on("unhandledRejection", e => {
-	logger.error(`Unhandled promise rejection: ${e}`);
-});
-*/
+	HaramLeotta.get().logger.error(`Unhandled promise rejection: ${e}`);
+})*/

@@ -18,6 +18,6 @@ mongoose.set("strictQuery", true);
 // Connect to MongoDB using Mongoose
 export function connect(): Promise<void> {
     return mongoose.connect(uri, options)
-        .then(() => mongooseLogger.info(`Successfully connected to "${uri}"`))
-        .catch((e) => mongooseLogger.error(`Error connecting to "${uri}": ${e}`));
+        .then(() => mongooseLogger.info(`Successfully connected to '${uri}'`))
+        .catch((e) => mongooseLogger.error(`Error connecting to '${uri}': ${e}`));
 }

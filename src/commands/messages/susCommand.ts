@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 
 /** Collections of "sus" links that can be sent when the command is invoked. */
 const links: string[] = [
@@ -15,7 +15,7 @@ export const susCommandMetadata: CommandMetadata<null, { content: string }> = {
     usage: "`ham sus`",
 
     // Actual core command with business logic implementation
-    command: (_self, _input, callback) => {
+    command: (_input, callback) => {
         // Generate number between 0 (inclusive) and link pool length (exclusive)
         const rand: number = Math.floor(Math.random() * links.length);
     
@@ -25,8 +25,8 @@ export const susCommandMetadata: CommandMetadata<null, { content: string }> = {
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, _args, command) =>
-        command(self, null, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, _args, command) =>
+        command(null, getSimpleMessageCallback(msg))
 
     // TODO: slash command handler
 }

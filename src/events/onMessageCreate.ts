@@ -1,7 +1,7 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
 import HaramLeotta from "..";
 import ClassLogger from "../utils/logger";
-import { CommandMetadata } from "../types/coreCommand";
+import { CommandMetadata } from "../types/types";
 import { changelogsCommandMetadata } from "../commands/information/changelogsCommand";
 import { clapCommandMetadata } from "../commands/messages/clapCommand";
 import { coinflipCommandMetadata } from "../commands/messages/coinflipCommand";
@@ -18,17 +18,19 @@ import { lessgoCommandMetadata } from "../commands/images/lessgoCommand";
 import { initializeContext, setCommandId } from "../utils/contextInitializer";
 import { getUserPrefix } from "../services/userService";
 import { prefixCommandMetadata } from "../commands/messages/prefixCommand";
+import { wikiCommandMetadata } from "../commands/internet/wikiCommand";
+import { translateCommandMetadata } from "../commands/internet/translateCommand";
 
 const logger = new ClassLogger("onMessageCreate");
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
-export default function (self: HaramLeotta, msg: Message): void {
+export default function (msg: Message): void {
     // Before executing any logic, initialize context for verbose logging
-    initializeContext({ userId: msg.author.username }, () => onMessageCreate(self, msg));
+    initializeContext({ userId: msg.author.username }, () => onMessageCreate(msg));
 }
 
 /** Handle newly created message and reply if a command is called. */
-async function onMessageCreate(self: HaramLeotta, msg: Message): Promise<void> {
+async function onMessageCreate(msg: Message): Promise<void> {
     // If the message author is a bot, ignore
     if(msg.author.bot) return;
 
@@ -65,8 +67,8 @@ async function onMessageCreate(self: HaramLeotta, msg: Message): Promise<void> {
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
             setCommandId(commandName);
-            self.logger.debug(msg.content);
-            return commandMetadata.onMessageCreateTransformer(self, msg, content, args, commandMetadata.command);
+            logger.debug(msg.content);
+            return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
         }
         
     }
@@ -129,7 +131,8 @@ for (const commandMetadata of [
     changelogsCommandMetadata, helpCommandMetadata, clapCommandMetadata,
     echoCommandMetadata,  paccoCommandMetadata, susCommandMetadata,
     coinflipCommandMetadata, picCommandMetadata, dripCommandMetadata,
-    lessgoCommandMetadata, prefixCommandMetadata
+    lessgoCommandMetadata, prefixCommandMetadata, wikiCommandMetadata,
+    translateCommandMetadata
 ]) {
     for(const alias of commandMetadata.aliases) {
         commandMetadatas[alias] = commandMetadata;
@@ -137,7 +140,6 @@ for (const commandMetadata of [
 }
 
     /*
-    wiki: { category: "Internet", description: "Sends the Wikipedia link (and embed) of a topic.  },
     translate: { category: "Internet", description: "Translates some text in another language.", aliases: ["tl" },
     giggino: { category: "Internet", description: "Translates some text in napoletano.  },
     reddit: { category: "Internet", description :"Sends a post in hot from a given subreddit, if exists.", aliases: ["r", "r/" },

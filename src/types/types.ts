@@ -7,13 +7,12 @@ export type CoreCommandCallback<O> = (output: O) => void;
  *  without handling the "reply" itself: the command could be invoked both by
  *  a text message, slash command or interfaction. */
 export type CoreCommand<I, O> = (
-    self: HaramLeotta,
     input: I, callback: CoreCommandCallback<O>
 ) => void;
 
 /** Defines the signature of the method used to handle the incoming text message
  *  to be parsed and to invoke the core command with the correct parameters. */
-export type OnMessageCreateTransformer<I, O> = (self: HaramLeotta, msg: Message, content: string, args: string[], command: CoreCommand<I, O>) => void
+export type OnMessageCreateTransformer<I, O> = (msg: Message, content: string, args: string[], command: CoreCommand<I, O>) => void
 
 // TODO
 export type OnSlashCommandTransformer = (content: any) => void

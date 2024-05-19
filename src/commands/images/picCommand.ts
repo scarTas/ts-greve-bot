@@ -1,7 +1,8 @@
 import { EmbedBuilder, Message, User } from "discord.js";
-import { CommandMetadata } from "../../types/coreCommand";
+import { CommandMetadata } from "../../types/types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import ClassLogger from "../../utils/logger";
+import HaramLeotta from "../..";
 
 const logger: ClassLogger = new ClassLogger("pic");
 
@@ -14,9 +15,9 @@ export const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: Embed
     \n`ham pic emre` // Same",
 
     // Actual core command with business logic implementation
-    command: (self, { user }, callback) => {
+    command: ({ user }, callback) => {
         const embed = new EmbedBuilder()
-        .setColor(self.embedColor)
+        .setColor(HaramLeotta.get().embedColor)
         .setAuthor({name: user.displayName, iconURL: user.avatarURL()! })
         .setImage(user.displayAvatarURL({ extension: "webp", forceStatic: true, size: 4096 }))
     
@@ -26,13 +27,13 @@ export const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: Embed
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (self, msg, _content, args, command) => {
+    onMessageCreateTransformer: (msg, _content, args, command) => {
         // Try to retrieve the mentioned or written user from the first argument
         getUserFromMessage(msg, args[0])
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
         .then( user => {
-            user && command(self, { user }, getSimpleMessageCallback(msg))
+            user && command({ user }, getSimpleMessageCallback(msg))
         })
     }
 
