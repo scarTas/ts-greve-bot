@@ -1,5 +1,4 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
-import HaramLeotta from "..";
 import ClassLogger from "../utils/logger";
 import { CommandMetadata } from "../types/types";
 import { changelogsCommandMetadata } from "../commands/information/changelogsCommand";
@@ -20,6 +19,7 @@ import { getUserPrefix } from "../services/userService";
 import { prefixCommandMetadata } from "../commands/messages/prefixCommand";
 import { wikiCommandMetadata } from "../commands/internet/wikiCommand";
 import { translateCommandMetadata } from "../commands/internet/translateCommand";
+import { redditCommandMetadata } from "../commands/internet/redditCommand";
 
 const logger = new ClassLogger("onMessageCreate");
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
@@ -67,7 +67,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
             setCommandId(commandName);
-            logger.debug(msg.content);
+            logger.info(msg.content);
             return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
         }
         
@@ -132,7 +132,7 @@ for (const commandMetadata of [
     echoCommandMetadata,  paccoCommandMetadata, susCommandMetadata,
     coinflipCommandMetadata, picCommandMetadata, dripCommandMetadata,
     lessgoCommandMetadata, prefixCommandMetadata, wikiCommandMetadata,
-    translateCommandMetadata
+    translateCommandMetadata, redditCommandMetadata
 ]) {
     for(const alias of commandMetadata.aliases) {
         commandMetadatas[alias] = commandMetadata;

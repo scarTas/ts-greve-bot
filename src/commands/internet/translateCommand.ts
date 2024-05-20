@@ -9,8 +9,8 @@ const logger: ClassLogger = new ClassLogger("translate");
 export const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Translates some text in another language.",
-    aliases: ["translate", "tl"], usage: "`ham translate praticamente it en` // Translates `praticamente` from italian to `english`\
-    \n`ham translate praticamente en` // Translates `praticamente` to english, recognizing the source language",
+    aliases: ["translate", "tl"], usage: "`ham translate ciao it en` // Translates `ciao` from italian to english\
+    \n`ham translate ciao en` // Translates `ciao` to english, recognizing source language",
     
     // Actual core command with business logic implementation
     command: ({ query, toLanguage, fromLanguage }, callback) => {

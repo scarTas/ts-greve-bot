@@ -9,8 +9,8 @@ const logger: ClassLogger = new ClassLogger("wiki");
 export const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Sends the Wikipedia link (and embed) of a topic.",
-    aliases: ["wiki"], usage: "`ham wiki clash of clans` // Searches for an english article about \"Clash of Clans\"\
-    \n`ham wiki clash of clans it` // Searches for an italian article about \"Clash of Clans\"",
+    aliases: ["wiki"], usage: "`ham wiki clash of clans` // Searches for an english article about `Clash of Clans`\
+    \n`ham wiki clash of clans it` // Searches for an italian article about `Clash of Clans`",
     
     // Actual core command with business logic implementation
     command: ({ query, language }, callback) => {
