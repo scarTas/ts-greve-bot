@@ -49,17 +49,17 @@ export default class ClassLogger {
     
     /** Prints coloured log level and timestamp, followed by the given string.
      *  Ex: "[INFO] 20/05/2024, 22:06:31.531 [//] Hello world!" */
-    private static print = (s: string, level: string, color: Color): void => {
+    private static print = (s: string, level: string, color: Color, e?: Error): void => {
         const { requestId, commandId, userId } = getContextInfo();
-        console.log(
-            `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET} [${commandId}/${userId}/${requestId}] ${s}`);
+        const log = `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET} [${commandId}/${userId}/${requestId}] ${s}`;
+        e ? console.error(log, e) : console.log(log);
     }
 
     public static trace = (s: string) => ClassLogger.print(s, "TRACE", Color.PURPLE);
     public static debug = (s: string) => ClassLogger.print(s, "DEBUG", Color.BLUE);
     public static info = (s: string) => ClassLogger.print(s, "INFO", Color.GREEN);
     public static warn = (s: string) => ClassLogger.print(s, "WARN", Color.YELLOW);
-    public static error = (s: string) => ClassLogger.print(s, "ERROR", Color.RED);
+    public static error = (s: string, e?: Error) => ClassLogger.print(s, "ERROR", Color.RED, e);
     
     /* ==== INSTANCE METHODS ================================================ */
     /** Prepares and formats prefix text. */
@@ -69,5 +69,5 @@ export default class ClassLogger {
     public debug = (s: string) => { (this.level <= LogLevel.DEBUG) && ClassLogger.debug(this.getPrefix() + s) };
     public info = (s: string) => { (this.level <= LogLevel.INFO) && ClassLogger.info(this.getPrefix() + s) };
     public warn = (s: string) => { (this.level <= LogLevel.WARN) && ClassLogger.warn(this.getPrefix() + s) };
-    public error = (s: string) => { ClassLogger.error(this.getPrefix() + s) };
+    public error = (s: string = "", e?: Error) => { ClassLogger.error(this.getPrefix() + s, e) };
 }

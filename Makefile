@@ -19,7 +19,7 @@ DOCKER_COMPOSE_PROD=./docker-compose.prod.yml
 
 # Default behaviour: local
 all: local
-# LOCAL: run Docker Postgres instance and local Spring server (no Docker).
+# LOCAL: run Docker Postgres instance and local Express server (no Docker).
 # Run docker compose in detached mode (-d) to avoid messing up the terminal.
 # To inject the .env file locally (on docker, compose injects it):
 # 	- cat the env file filtering the commented lines with grep

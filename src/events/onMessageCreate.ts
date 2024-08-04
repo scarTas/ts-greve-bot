@@ -20,6 +20,8 @@ import { prefixCommandMetadata } from "../commands/messages/prefixCommand";
 import { wikiCommandMetadata } from "../commands/internet/wikiCommand";
 import { translateCommandMetadata } from "../commands/internet/translateCommand";
 import { redditCommandMetadata } from "../commands/internet/redditCommand";
+import { playCommandMetadata } from "../commands/music/playCommand";
+import { skipCommandMetadata } from "../commands/music/skipCommand";
 
 const logger = new ClassLogger("onMessageCreate");
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
@@ -42,7 +44,22 @@ async function onMessageCreate(msg: Message): Promise<void> {
     const lowerCaseContent: string = msg.content.toLowerCase();
 
     // If the user has a custom prefix set, retrieve it - always use the default
-    const prefix: string = (await getUserPrefix(msg.author.id))?.concat("|"+DEFAULT_PREFIX) ?? DEFAULT_PREFIX;
+    let prefix = DEFAULT_PREFIX;
+    const customPrefix = await getUserPrefix(msg.author.id);
+
+    // Compose regex to be used to detect and replace prefix from the message.
+    // Put longer prefix first so that, if the custom prefix starts with the
+    // default prefix (or vice versa) the prefix is not only partially removed.
+    // Ex: custom prefix is H, default is HAM - the cleaned content of the
+    //  message "HAM CLAP" would be a "AM CLAP" instead of "CLAP": HAM starts
+    //  with H, and only H would be removed if the regex was "H|HAM".
+    if(customPrefix) {
+        if(customPrefix.length > DEFAULT_PREFIX.length) {
+            prefix = customPrefix.concat("|"+prefix);
+        } else {
+            prefix = prefix.concat("|"+customPrefix);
+        }
+    }
     const prefixRegex = new RegExp(`^(${prefix})`);
 
     // If message starts with user's or default prefix, parse and execute the command
@@ -132,7 +149,8 @@ for (const commandMetadata of [
     echoCommandMetadata,  paccoCommandMetadata, susCommandMetadata,
     coinflipCommandMetadata, picCommandMetadata, dripCommandMetadata,
     lessgoCommandMetadata, prefixCommandMetadata, wikiCommandMetadata,
-    translateCommandMetadata, redditCommandMetadata
+    translateCommandMetadata, redditCommandMetadata, playCommandMetadata,
+    skipCommandMetadata
 ]) {
     for(const alias of commandMetadata.aliases) {
         commandMetadatas[alias] = commandMetadata;
