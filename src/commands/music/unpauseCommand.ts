@@ -1,19 +1,21 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
+import ClassLogger from "../../utils/logger";
 import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 
+const logger: ClassLogger = new ClassLogger("unpause");
+
 /** Define command metadata and handler methods for text and slash commands. */
-const skipCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
+const unpauseCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "skips the current song in the queue, \
-    playing the next one (if any).",
-    aliases: ["skip", "s"], usage: "TODO",
+    category: "Music", description: "Unpauses the playing song.",
+    aliases: ["unpause", "ups"], usage: "TODO",
     
     // Actual core command with business logic implementation
     command: async ({ msg }, callback) => {
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-            musicPlayer.skip();
+            musicPlayer.unpause();
         });
     },
 
@@ -25,4 +27,4 @@ const skipCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }
 
     // TODO: slash command handler
 }
-export default skipCommandMetadata;
+export default unpauseCommandMetadata;

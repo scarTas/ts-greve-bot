@@ -2,6 +2,8 @@ import axios from "axios";
 import ClassLogger from "../utils/logger";
 
 /* ==== PROPERTIES ========================================================== */
+const logger = new ClassLogger("WikiService");
+
 /** Default query params to be used for all Wikipedia API calls. */
 const defParams = {
     origin: "*",    // This is needed to avoid CORS issues
@@ -14,7 +16,7 @@ export let availableLanguages: Set<string> | undefined = undefined;
 // On startup, initialize availableLanguages Set
 getLanguages()
     .then(languages => availableLanguages = new Set(languages))
-    .catch(e => ClassLogger.error("Error initializing languages: " + e));
+    .catch(e => logger.error("Error initializing languages: ", e));
 
 /* ==== METHODS ============================================================= */
 /** Checks whether the provided language is supported by Wikipedia or not. */
@@ -58,6 +60,8 @@ export function searchArticleTitles(query: string, limit: number = 1, language: 
 /** Composes the final Wikipedia article URI from the title and the language.
  *  If no language is specified, english is used. */
 export function getArticleUri(title: string, language: string = "en"): string {
+    if(!title) throw Error("No results found");
+
     // Replace title spaces with underscores and encode to URI
     const encodedTitle: string = encodeURIComponent(title.replace(/ /g, '_'));
 

@@ -1,12 +1,16 @@
 import HaramLeotta from "..";
 import { connect } from "../data/mongoose";
 import ClassLogger from "../utils/logger";
+import { registerCommands } from "./onMessageCreate";
 
 
 /** Event triggered when the bot has successfully logged in.
  *  Update bot activity and log some guild info. */
 export const onReady = async () => {
     const logger = new ClassLogger("onReady");
+
+    // Register commands
+    await registerCommands();
 
     // Update bot activity status
     HaramLeotta.get().updatePresence();

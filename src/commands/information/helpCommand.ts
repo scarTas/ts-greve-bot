@@ -4,7 +4,7 @@ import { commandMetadatas, getSimpleMessageCallback } from "../../events/onMessa
 import HaramLeotta from "../..";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedBuilder[] }> = {
+const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
     category: "Information", description: "Shows the list of available commands and their usage.",
     aliases: ["help"],
@@ -60,3 +60,4 @@ export const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds:
 
     // TODO: slash command handler
 }
+export default helpCommandMetadata;

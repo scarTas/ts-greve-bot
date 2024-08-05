@@ -2,7 +2,7 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const paccoCommandMetadata: CommandMetadata<null, { content: string }> = {
+const paccoCommandMetadata: CommandMetadata<null, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "Pacco Amazon 😳", aliases: ["pacco"],
     usage: "`ham pacco`",
@@ -18,3 +18,4 @@ export const paccoCommandMetadata: CommandMetadata<null, { content: string }> = 
 
     // TODO: slash command handler
 }
+export default paccoCommandMetadata;

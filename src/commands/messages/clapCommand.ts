@@ -5,7 +5,7 @@ import { CommandMetadata } from "../../types/types";
 const clap = ' :clap_tone5: ';
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content: string }> = {
+const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "Claps some text.", aliases: ["clap"],
     usage: "`ham clap coglione` // c :clap_tone5: o :clap_tone5: g :clap_tone5: l :clap_tone5: i :clap_tone5: o :clap_tone5: n :clap_tone5: e\
@@ -30,3 +30,4 @@ export const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content
 
     // TODO: slash command handler
 }
+export default clapCommandMetadata;

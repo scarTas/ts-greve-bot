@@ -2,7 +2,7 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const inviteCommandMetadata: CommandMetadata<null, { content: string }> = {
+const inviteCommandMetadata: CommandMetadata<null, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Information", description: "Sends the invite link of the bot.",
     aliases: ["invite", "inv"], usage: "`ham invite`",
@@ -18,3 +18,4 @@ export const inviteCommandMetadata: CommandMetadata<null, { content: string }> =
 
     // TODO: slash command handler
 }
+export default inviteCommandMetadata;

@@ -1,12 +1,12 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getUserPrefix, updateUserPrefix } from "../../services/userService";
+import { getUserPrefix, updateUserPrefix } from "../../services/mongoService";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
 const logger: ClassLogger = new ClassLogger("prefix");
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string }, { content: string }> = {
+const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "Manage the bot text commands prefix.",
     aliases: ["prefix"], usage: "`ham prefix`  // display current prefix\
@@ -33,3 +33,4 @@ export const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: st
 
     // TODO: slash command handler
 }
+export default prefixCommandMetadata;

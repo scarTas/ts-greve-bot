@@ -3,7 +3,7 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const pingCommandMetadata: CommandMetadata<null, { content: string }> = {
+const pingCommandMetadata: CommandMetadata<null, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Information", description: "WebSocket ping in milliseconds.",
     aliases: ["ping"], usage: "`ham ping`",
@@ -19,3 +19,4 @@ export const pingCommandMetadata: CommandMetadata<null, { content: string }> = {
 
     // TODO: slash command handler
 }
+export default pingCommandMetadata;

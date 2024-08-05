@@ -2,9 +2,8 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 import { Message } from "discord.js";
-import { ISong } from "../../data/model/userModel";
 import { MusicPlayer, getSong } from "../../services/music/musicPlayer";
-import { ASong, SongType } from "../../services/music/song";
+import { ASong} from "../../services/music/song";
 
 const logger: ClassLogger = new ClassLogger("play");
 
@@ -12,7 +11,7 @@ const logger: ClassLogger = new ClassLogger("play");
 const uriRegex: RegExp = /https?:\/\/.*/;
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?: string }, { content: string }> = {
+const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Music", description: "Plays a song in your voice channel, loading \
     the url (if supported) or searching on YouTube.\nCurrently, the supported \
@@ -33,28 +32,16 @@ export const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, 
             if(!song) return;
         }
 
-        //> step 1: check if user is in a voice channel in which the bot has permissions
-        //> step 2: lock groupId (serverId)
-        //> step 3: if cache entry exists, check voice channel coherence
+        // Retrieve musicPlayer entry and add song to the queue
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-
-            //> step 4: run URL logic:
-            //> step 4.1: - Youtube Video: retrieve video metadata, package it into Song object
-            //> step 5: print newly added song to text channel
-            //> step 6: add Song object to songs array
-            //> step 7: if there is no text channel set, use current
-            //> step 8: if bot is disconnected, connect to voice channel
-            //> step 9: if bot is not playing, play last song
-            //> step 9.1 - Youtube Video (to be played): retrieve video stream
-            //> step 10: create resoruce and subscribe to voice connection (?)
-            //> step 11: update current music displayer
             if(song) {
+                // If the added song is the first in queue, start playing
                 musicPlayer.add(song);
             }
             
             else {
                 logger.info("Query not yet implemented");
-                // TODO: query
+                // TODO: query for user input on youtube
             }
         });
     },
@@ -74,3 +61,4 @@ export const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, 
 
     // TODO: slash command handler
 }
+export default playCommandMetadata;

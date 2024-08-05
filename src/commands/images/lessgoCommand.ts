@@ -1,15 +1,16 @@
 import { AttachmentBuilder, User } from "discord.js";
 import { CommandMetadata } from "../../types/types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getUserFromMessage } from "./picCommand";
 import ClassLogger from "../../utils/logger";
-import { fileRegex, overlap } from "./dripCommand";
+import { overlap } from "../../services/jimpService";
+import { fileRegex } from "./dripCommand";
+import { getUserFromMessage } from "../../services/userService";
 
 const baseImage: string = "./assets/images/lessgo.png";
 const logger: ClassLogger = new ClassLogger("lessgo");
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
+const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
     category: "Images", description: "LESSGOOOOOOOOO 🧏🏿‍♂️🧏🏿‍♂️🧏🏿‍♂️", aliases: ["lessgo"],
     usage: "`ham lessgo` // LESSGOOOOs yourself\
@@ -54,3 +55,4 @@ export const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string
 
     // TODO: slash command handler
 }
+export default lessgoCommandMetadata;

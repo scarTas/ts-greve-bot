@@ -4,7 +4,7 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const changelogsCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
+const changelogsCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
     category: "Information", description: "News and notes about the bot code and functionalities.",
     aliases: ["changelogs", "changes"], usage: "`ham changes`",
@@ -30,3 +30,4 @@ export const changelogsCommandMetadata: CommandMetadata<null, { embeds: EmbedBui
 
     // TODO: slash command handler
 }
+export default changelogsCommandMetadata;

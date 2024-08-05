@@ -1,6 +1,4 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
-import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { isLanguageValid, translate } from "../../services/translateService";
 import { CommandMetadata, RedditSortBy } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 import { isSortbyValid, retrieveLatestPost } from "../../services/redditService";
@@ -9,7 +7,7 @@ import HaramLeotta from "../..";
 const logger: ClassLogger = new ClassLogger("reddit");
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
+const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Retrieves a post from the specified subreddit, if exists.",
     aliases: ["reddit", "r/", "r"], usage: "`ham reddit memes` // Retrieves a post from the `meme` community, sorting by 'hot'\
@@ -147,3 +145,4 @@ export const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit
 
     // TODO: slash command handler
 }
+export default redditCommandMetadata;

@@ -287,7 +287,7 @@ export class MusicPlayer extends MusicQueue {
 
     public stop() {
         // Assert player is unpaused first
-        this.unpause();
+        //this.unpause();
 
         this.player.stop(true, true);
     }

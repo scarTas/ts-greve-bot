@@ -5,7 +5,7 @@ import { CommandMetadata } from "../../types/types";
 const emojis: string[] = [":head_bandage:", ":cross:"];
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const coinflipCommandMetadata: CommandMetadata<null, { content: string }> = {
+const coinflipCommandMetadata: CommandMetadata<null, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "Lets the bot decide for you.",
     aliases: ["coinflip", "coin"], usage: "`ham coinflip`",
@@ -26,3 +26,4 @@ export const coinflipCommandMetadata: CommandMetadata<null, { content: string }>
 
     // TODO: slash command handler
 }
+export default coinflipCommandMetadata;

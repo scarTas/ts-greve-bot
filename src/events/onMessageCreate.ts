@@ -1,27 +1,10 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
 import ClassLogger from "../utils/logger";
 import { CommandMetadata } from "../types/types";
-import { changelogsCommandMetadata } from "../commands/information/changelogsCommand";
-import { clapCommandMetadata } from "../commands/messages/clapCommand";
-import { coinflipCommandMetadata } from "../commands/messages/coinflipCommand";
-import { infoCommandMetadata } from "../commands/information/infoCommand";
-import { inviteCommandMetadata } from "../commands/information/inviteCommand";
-import { paccoCommandMetadata } from "../commands/messages/paccoCommand";
-import { echoCommandMetadata } from "../commands/messages/echoCommand";
-import { susCommandMetadata } from "../commands/messages/susCommand";
-import { pingCommandMetadata } from "../commands/information/pingCommand";
-import { picCommandMetadata } from "../commands/images/picCommand";
-import { helpCommandMetadata } from "../commands/information/helpCommand";
-import { dripCommandMetadata } from "../commands/images/dripCommand";
-import { lessgoCommandMetadata } from "../commands/images/lessgoCommand";
 import { initializeContext, setCommandId } from "../utils/contextInitializer";
-import { getUserPrefix } from "../services/userService";
-import { prefixCommandMetadata } from "../commands/messages/prefixCommand";
-import { wikiCommandMetadata } from "../commands/internet/wikiCommand";
-import { translateCommandMetadata } from "../commands/internet/translateCommand";
-import { redditCommandMetadata } from "../commands/internet/redditCommand";
-import { playCommandMetadata } from "../commands/music/playCommand";
-import { skipCommandMetadata } from "../commands/music/skipCommand";
+import { getUserPrefix } from "../services/mongoService";
+import { readdir } from 'fs/promises';
+import * as path from 'path';
 
 const logger = new ClassLogger("onMessageCreate");
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
@@ -143,18 +126,36 @@ export function getSimpleMessageCallback(msg: Message): (reply: { content?: stri
  *  and feed them to the actual co command. */
 export const commandMetadatas: { [k: string]: CommandMetadata<any, any> } = {};
 
-for (const commandMetadata of [
-    pingCommandMetadata, inviteCommandMetadata, infoCommandMetadata,
-    changelogsCommandMetadata, helpCommandMetadata, clapCommandMetadata,
-    echoCommandMetadata,  paccoCommandMetadata, susCommandMetadata,
-    coinflipCommandMetadata, picCommandMetadata, dripCommandMetadata,
-    lessgoCommandMetadata, prefixCommandMetadata, wikiCommandMetadata,
-    translateCommandMetadata, redditCommandMetadata, playCommandMetadata,
-    skipCommandMetadata
-]) {
-    for(const alias of commandMetadata.aliases) {
-        commandMetadatas[alias] = commandMetadata;
+
+/** Dynamically retrieve all exported modules from given path (recursively). */
+async function loadDefaultExports(dir: string): Promise<any[]> {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const modules = await Promise.all(entries.map(async (entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      return loadDefaultExports(fullPath);
+    } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+      const module = await import(fullPath);
+      return module.default;
     }
+  }));
+
+  // Flatten the array since loadDefaultExports can return nested arrays
+  return modules.flat();
+}
+
+export async function registerCommands() {
+    const directoryPath = path.resolve(__dirname, '../commands');
+    const defaultExportsArray: CommandMetadata<any, any>[] = await loadDefaultExports(directoryPath);
+  
+    for(const commandMetadata of defaultExportsArray) {
+      //logger.trace(`Registering command '${commandMetadata.aliases[0]}'`);
+      for(const alias of commandMetadata.aliases) {
+          commandMetadatas[alias] = commandMetadata;
+      }
+    }
+
+    logger.debug("All commands registered");
 }
 
     /*

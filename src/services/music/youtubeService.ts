@@ -1,4 +1,5 @@
 import ytdl from "@distube/ytdl-core";
+//import ytdl from "ytdl-core";
 import { secondsToString } from "../../utils/length";
 import { ASong, SongType } from "./song";
 import { Readable } from 'stream';
@@ -51,7 +52,10 @@ export class YoutubeSong extends ASong {
 
     /** ==== METHODS ======================================================== */
     getStream(): Readable {
-        return ytdl(this.uri, { begin: 0, filter: "audioonly", quality: "highestaudio", highWaterMark: 1048576 * 32 });
+        return ytdl(this.uri, {
+            begin: 0, agent: ytdl.createAgent(),
+            filter: "audioonly", quality: "highestaudio", highWaterMark: 1048576 * 32
+        });
     }
 }
 

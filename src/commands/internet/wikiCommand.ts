@@ -1,12 +1,12 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getArticleUri, getLanguages, isLanguageValid, searchArticleTitles } from "../../services/wikiService";
+import { getArticleUri, isLanguageValid, searchArticleTitles } from "../../services/wikiService";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
 const logger: ClassLogger = new ClassLogger("wiki");
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
+const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Sends the Wikipedia link (and embed) of a topic.",
     aliases: ["wiki"], usage: "`ham wiki clash of clans` // Searches for an english article about `Clash of Clans`\
@@ -18,7 +18,7 @@ export const wikiCommandMetadata: CommandMetadata<{ query: string, language?: st
         searchArticleTitles(query, 5, language)
             .then(articles => getArticleUri(articles[0], language))
             .then(uri => callback({ content: uri }))
-            .catch(e => logger.error(e));
+            .catch(e => { logger.error("", e); callback({ content: "??" }) });
     },
 
     // Transformer that parses the text input before invoking the core command,
@@ -33,3 +33,4 @@ export const wikiCommandMetadata: CommandMetadata<{ query: string, language?: st
 
     // TODO: slash command handler
 }
+export default wikiCommandMetadata;

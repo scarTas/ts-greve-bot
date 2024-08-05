@@ -9,7 +9,7 @@ const links: string[] = [
 ];
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const susCommandMetadata: CommandMetadata<null, { content: string }> = {
+const susCommandMetadata: CommandMetadata<null, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "SUS!! SUSSY BAKA!!!!", aliases: ["sus"],
     usage: "`ham sus`",
@@ -30,3 +30,4 @@ export const susCommandMetadata: CommandMetadata<null, { content: string }> = {
 
     // TODO: slash command handler
 }
+export default susCommandMetadata;

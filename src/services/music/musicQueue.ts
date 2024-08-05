@@ -110,12 +110,23 @@ export abstract class MusicQueue {
 
     //! `clear()` not implemented: delete this object entry (and stop playing?)
 
-    // TODO: is `pause()` to be implemented here?
-    // TODO: is `resume()` to be implemented here?
+    /** Updates the current loop policy for this player.
+     *  If no policy is specified, it is updated based on current setting. */
+    public setLoopPolicy(loopPolicy?: LoopPolicy) {
+        if(loopPolicy)  this.loopPolicy = loopPolicy;
+        else            this.toggleLoopPolicy();
+    }
 
-    /** Updates the current loop policy for this player. */
-    public setLoopPolicy(loopPolicy: LoopPolicy) {
-        this.loopPolicy = loopPolicy;
+    /** Updates the current loop policy based on the current setting. */
+    public toggleLoopPolicy() {
+        if(this.loopPolicy == LoopPolicy.NONE)
+            return this.loopPolicy = LoopPolicy.SONG;
+
+        if(this.loopPolicy == LoopPolicy.SONG)
+            return this.loopPolicy = LoopPolicy.ALL;
+
+        if(this.loopPolicy == LoopPolicy.ALL)
+            return this.loopPolicy = LoopPolicy.NONE;
     }
 
     /** Randomly changes the position of all the songs in the queue, except

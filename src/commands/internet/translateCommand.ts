@@ -6,7 +6,7 @@ import ClassLogger from "../../utils/logger";
 const logger: ClassLogger = new ClassLogger("translate");
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
+const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Translates some text in another language.",
     aliases: ["translate", "tl"], usage: "`ham translate ciao it en` // Translates `ciao` from italian to english\
@@ -40,3 +40,4 @@ export const translateCommandMetadata: CommandMetadata<{ query: string, toLangua
 
     // TODO: slash command handler
 }
+export default translateCommandMetadata;

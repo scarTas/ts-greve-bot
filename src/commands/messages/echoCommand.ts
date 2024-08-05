@@ -2,7 +2,7 @@ import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
-export const echoCommandMetadata: CommandMetadata<{ content: string }, { content: string }> = {
+const echoCommandMetadata: CommandMetadata<{ content: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
     category: "Messages", description: "Repeats some text.", aliases: ["echo"],
     usage: "`ham echo yoooooo` // Repeats `yoooooo`",
@@ -18,3 +18,4 @@ export const echoCommandMetadata: CommandMetadata<{ content: string }, { content
 
     // TODO: slash command handler
 }
+export default echoCommandMetadata;
