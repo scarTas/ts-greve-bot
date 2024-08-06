@@ -5,15 +5,15 @@ import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const unpauseCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
+const clearCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "Unpauses the playing song.",
-    aliases: ["unpause", "ups"], usage: "TODO",
+    category: "Music", description: "Stops playing and disconnects the bot.",
+    aliases: ["clear", "stop"], usage: "TODO",
     
     // Actual core command with business logic implementation
     command: async ({ msg }, callback) => {
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-            musicPlayer.unpause();
+            musicPlayer.destroy();
         });
     },
 
@@ -25,4 +25,4 @@ const unpauseCommandMetadata: CommandMetadata<{ msg: Message }, { content: strin
 
     // TODO: slash command handler
 }
-export default unpauseCommandMetadata;
+export default clearCommandMetadata;

@@ -5,8 +5,6 @@ import { Message } from "discord.js";
 import { MusicPlayer, getSong } from "../../services/music/musicPlayer";
 import { ASong} from "../../services/music/song";
 
-const logger: ClassLogger = new ClassLogger("play");
-
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
 
@@ -40,7 +38,7 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
             }
             
             else {
-                logger.info("Query not yet implemented");
+                ClassLogger.info("Query not yet implemented");
                 // TODO: query for user input on youtube
             }
         });

@@ -1,5 +1,4 @@
 import axios from "axios";
-import ClassLogger from "../utils/logger";
 
 /* ==== PROPERTIES ========================================================== */
 const supportedLanguages = new Set([

@@ -59,6 +59,8 @@ export class YoutubeSong extends ASong {
     }
 }
 
+// playmix, clear, leave, join, bind, nowplaying, queue, favourites
+
 /* TODO: use following code as test case
 const tests = ["http://www.youtube.com/watch?v=-wtIMTCHWuI",
 "http://youtube.com/watch?v=-wtIMTCHWuI",

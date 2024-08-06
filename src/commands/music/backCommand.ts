@@ -4,8 +4,6 @@ import ClassLogger from "../../utils/logger";
 import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 
-const logger: ClassLogger = new ClassLogger("back");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const backCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
     // Command metadata for "help" command and general info about the command

@@ -5,8 +5,6 @@ import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 import { LoopPolicy } from "../../services/music/musicQueue";
 
-const logger: ClassLogger = new ClassLogger("loop");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const loopCommandMetadata: CommandMetadata<{ msg: Message, loopPolicy?: LoopPolicy }, { content: string }> = {
     // Command metadata for "help" command and general info about the command

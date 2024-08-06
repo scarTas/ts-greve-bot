@@ -5,24 +5,31 @@ import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const unpauseCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {
+const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "Unpauses the playing song.",
-    aliases: ["unpause", "ups"], usage: "TODO",
+    category: "Music", description: "Changes the volume of the music.",
+    aliases: ["volume", "v"], usage: "TODO",
     
     // Actual core command with business logic implementation
-    command: async ({ msg }, callback) => {
+    command: async ({ msg, volume }, callback) => {
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-            musicPlayer.unpause();
+            musicPlayer.setVolume(volume);
         });
     },
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, _args, command) => {
-        command({ msg }, getSimpleMessageCallback(msg))
+    onMessageCreateTransformer: (msg, _content, args, command) => {
+
+        // Retrieve index to be removed - if argument is not a number, return
+        let volume: string | number | undefined = args.pop();
+        if(!volume) return;
+        volume = parseInt(volume);
+        if(isNaN(volume) || volume < 0) return;
+
+        command({ msg, volume }, getSimpleMessageCallback(msg))
     }
 
     // TODO: slash command handler
 }
-export default unpauseCommandMetadata;
+export default volumeCommandMetadata;

@@ -289,7 +289,7 @@ export class MusicPlayer extends MusicQueue {
         // Assert player is unpaused first
         //this.unpause();
 
-        this.player.stop(true, true);
+        (this.player.stop as any)(true, true);
     }
 
     /** Updates the volume to be used for the resources to be played.
@@ -303,13 +303,24 @@ export class MusicPlayer extends MusicQueue {
     }
 
     /** Pauses the current playing resource. */
-    public pause = () => {
+    public pause() {
         this.player.pause();
     }
 
     /** Resumes the current paused resource. */
-    public unpause = () => {
+    public unpause() {
         this.player.unpause();
+    }
+
+    /** Stops the current resource from playing and disconnects the bot;
+     *  removes this music player from the global cache and cleans pending
+     *  event listeners to prevent memory leaks. */
+    public destroy() {
+        this.stop();
+        this.disconnect();
+        this.player.removeAllListeners();
+        this.connection?.removeAllListeners();
+        MusicPlayer.cache.delete(this.groupId);
     }
 }
 
