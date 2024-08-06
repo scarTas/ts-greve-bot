@@ -24,8 +24,9 @@ const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, {
         // Retrieve index to be removed - if argument is not a number, return
         let volume: string | number | undefined = args.pop();
         if(!volume) return;
-        volume = parseInt(volume);
+        volume = parseFloat(volume.replace(',', '.'));
         if(isNaN(volume) || volume < 0) return;
+        ClassLogger.debug("New volume: "+volume);
 
         command({ msg, volume }, getSimpleMessageCallback(msg))
     }
