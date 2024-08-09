@@ -1,4 +1,4 @@
-import { GuildMember, Interaction, Message, PermissionsBitField, VoiceBasedChannel } from "discord.js";
+import { GuildMember, Interaction, Message, PermissionsBitField, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
 import { LoopPolicy, MusicQueue } from "./musicQueue";
 import { AudioPlayer, AudioPlayerError, AudioPlayerPlayingState, AudioPlayerState, AudioPlayerStatus, AudioResource, StreamType, VoiceConnection, VoiceConnectionDisconnectReason, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from "@discordjs/voice";
 import ClassLogger from "../../utils/logger";
@@ -6,6 +6,7 @@ import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
 import { ASong } from "./song";
 import { YoutubeSong } from "./youtubeService";
+import { DynamicMessage } from "./dynamicMessage";
 
 
 export class MusicPlayer extends MusicQueue {
@@ -27,7 +28,7 @@ export class MusicPlayer extends MusicQueue {
         //! "Loop" must use an async method - read RedditService for more info.
         while (MusicPlayer.locks.has(groupId)) await sleep(0);
         MusicPlayer.locks.add(groupId);
-        MusicPlayer.logger.debug(`${groupId} locked [${reason}]`);
+        ClassLogger.debug(`${groupId} locked [${reason}]`);
     }
 
     /** To be used after finishing maniuplating the musicPlayer instance.
@@ -35,7 +36,7 @@ export class MusicPlayer extends MusicQueue {
     protected static unlock = function (groupId: string, reason?: string) {
         // Whatever happens, remove lock at all costs
         MusicPlayer.locks.delete(groupId);
-        MusicPlayer.logger.debug(`${groupId} unlocked [${reason}]`);
+        ClassLogger.debug(`${groupId} unlocked [${reason}]`);
     }
 
     /** Wraps callback execution in try-finally block with musicPlayer locks. */
@@ -53,7 +54,7 @@ export class MusicPlayer extends MusicQueue {
     /** Checks whether the user that sent the message / interaction has actually
      *  joined a voice channel in which the bot has permissions. If it has, the
      *  voiceChannel instance is returned. */
-    protected static async checkVoicePresence (i: Message | Interaction): Promise<VoiceBasedChannel | undefined> {
+    protected static async checkVoicePresence(i: Message | Interaction): Promise<VoiceBasedChannel | undefined> {
         let member: GuildMember | undefined;
 
         // If user is cached, retrieve it directly from the message/interaction
@@ -84,6 +85,27 @@ export class MusicPlayer extends MusicQueue {
         return channel;
     }
 
+    /** Checks whether the cpmmand sent by the user actually is in a valid text
+     *  channel in which the bot has permissions. If it has, the textChannel instance is returned. */
+    protected static checkTextChannelPermissions(i: Message | Interaction): TextChannel | undefined {
+
+        // Retrieve text channel in which the command has been sent
+        const channel: TextBasedChannel | null = i.channel;
+
+        // If there is not text channel, or it isn't a guild channel, return
+        if (!channel || !(channel instanceof TextChannel)) return;
+
+        // Retrieve voice channel permissions for "me" (bot user)
+        const me = channel.guild.members.me;
+        if (!me) return;
+        const permissions = channel.permissionsFor(me);
+
+        // Check if bot can view and send messages in the text channel
+        if (!permissions.has(PermissionsBitField.Flags.ViewChannel)) return;
+        if (!permissions.has(PermissionsBitField.Flags.SendMessages)) return;
+        return channel;
+    }
+
     /** To be used to perform methods on a musicPlayer instance.
      *  MusicPlayer instances can only retrieved and used with this method,
      *  which locks the instance used to avoid concurrency.
@@ -98,12 +120,14 @@ export class MusicPlayer extends MusicQueue {
         const voiceChannel: VoiceBasedChannel | undefined = await MusicPlayer.checkVoicePresence(msg);
         if (!voiceChannel) return;
 
+        const textChannel: TextChannel | undefined = MusicPlayer.checkTextChannelPermissions(msg);
+
         // Retrieve musicPlayer and execute requested logic safely (with locks)
         MusicPlayer.locking(groupId, async () => {
             // Retrieve player from cache (create instance if it not present)
             let musicPlayer: MusicPlayer | undefined = MusicPlayer.cache.get(groupId);
             if (!musicPlayer) {
-                musicPlayer = new MusicPlayer(voiceChannel, groupId);
+                musicPlayer = new MusicPlayer(groupId, voiceChannel, textChannel);
                 MusicPlayer.cache.set(groupId, musicPlayer);
             }
 
@@ -113,35 +137,12 @@ export class MusicPlayer extends MusicQueue {
             //return player;
             await callback(musicPlayer);
         }, "MusicPlayer::get");
-
-        /*
-        // Wait for the lock to free up and lock for this process
-        await MusicPlayer.lock(groupId);
-
-        try {
-            // Retrieve player from cache (create instance if it not present)
-            let musicPlayer: MusicPlayer | undefined = MusicPlayer.cache.get(groupId);
-            if (!musicPlayer) {
-                musicPlayer = new MusicPlayer(voiceChannel, groupId);
-                MusicPlayer.cache.set(groupId, musicPlayer);
-            }
-
-            // If player had a voice channel, check if it's the same as user's
-            if (musicPlayer.voiceChannel.id !== voiceChannel.id) return;
-
-            //return player;
-
-            await callback(musicPlayer);
-        } finally {
-            MusicPlayer.unlock(groupId);
-        }
-        */
     }
 
     /* ==== CONSTRUCTOR ===================================================== */
     /** MusicPlayer instances can only be created from the get() method in case
      *  the provided groupId is not present in the musicPlayer list. */
-    protected constructor(voiceChannel: VoiceBasedChannel, groupId: string) {
+    protected constructor(groupId: string, voiceChannel: VoiceBasedChannel, textChannel?: TextBasedChannel) {
         super(5, LoopPolicy.NONE);
         this.voiceChannel = voiceChannel;
         this.groupId = groupId;
@@ -166,7 +167,7 @@ export class MusicPlayer extends MusicQueue {
 
         // If errors occur during reproduction, skip broken resource
         this.player.on("error", (error: AudioPlayerError) => {
-            MusicPlayer.logger.error("player.error: ", error);
+            ClassLogger.error("Player error", error);
             MusicPlayer.locking(this.groupId, () => this.skip(), "player error -> this.skip");
         });
 
@@ -175,7 +176,7 @@ export class MusicPlayer extends MusicQueue {
         // If the resource finished playing, skip to the next song.
         // If the resource has been manually stopped, do nothing.
         this.player.on("stateChange", (oldState: AudioPlayerState, newState: AudioPlayerState) => {
-            MusicPlayer.logger.trace(`player.stateChange: ${oldState.status} -> ${newState.status}`);
+            ClassLogger.trace(`Player stateChange: ${oldState.status} -> ${newState.status}`);
 
             if (
                 oldState.status === AudioPlayerStatus.Playing
@@ -185,6 +186,13 @@ export class MusicPlayer extends MusicQueue {
                 MusicPlayer.locking(this.groupId, () => this.skip(), "player stateChange -> finished");
             }
         });
+
+        // If textChannel exists and the bot has the right permissions,
+        // create dynamic message.
+        if(textChannel) {
+            ClassLogger.debug("Valid textChannel");
+            this.nowPlayingMessage = new DynamicMessage(textChannel);
+        }
     }
 
     /* ==== PROPERTIES ====================================================== */
@@ -204,6 +212,8 @@ export class MusicPlayer extends MusicQueue {
     /** Current playing song object; contains actual data stream with audio
      *  playing and metadata and other settings (volume, duration, ...). */
     public resource: AudioResource | undefined = undefined;
+
+    public nowPlayingMessage: DynamicMessage | undefined;
 
     /* ==== METHODS ========================================================= */
     /** Connect the bot to the selected voice channel, if the connection hasn't
@@ -228,7 +238,7 @@ export class MusicPlayer extends MusicQueue {
         });
 
         this.connection.on("stateChange", async (_, newState) => {
-            MusicPlayer.logger.trace("Connection state changed to " + newState.status);
+            ClassLogger.trace("Connection state changed to " + newState.status);
 
             // Someone moved or disconnected the bot - destroy connection
             if (
@@ -238,9 +248,10 @@ export class MusicPlayer extends MusicQueue {
         });
 
         this.connection.on("error", e => {
-            MusicPlayer.logger.error("Connection error: ", e);
+            ClassLogger.error("Connection error", e);
             // TODO: define error behaviour
-            this.disconnect();
+            //this.disconnect();
+            this.destroy();
         });
 
         // Apply player to the connection
@@ -251,16 +262,15 @@ export class MusicPlayer extends MusicQueue {
      *  the connection (if any). */
     public disconnect() {
         if (!this.connection) return;
-        MusicPlayer.logger.trace("Manually destroying connection");
+        ClassLogger.trace("Manually destroying connection");
 
         // Destroy connection to prevent memory leaks
         if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) this.connection.destroy();
         this.connection = undefined;
     }
 
-    /** Returns true if the song is a valid resource and has been started
-     *  playing. */
-    public play(): boolean {
+    /** Returns true if the song is a valid resource and started playing. */
+    public async play(): Promise<boolean> {
         const song: ASong | undefined = super.getCurrent();
         if (!song) return false;
 
@@ -281,6 +291,11 @@ export class MusicPlayer extends MusicQueue {
         this.player.play(this.resource);
 
         // Apply player to connection?
+
+        // Update dynamic message displaying the currently playing song
+        await this.nowPlayingMessage
+            ?.setContent("Now playing: " + song.title)
+            .then(dm => dm.resend());
 
         return true;
     }

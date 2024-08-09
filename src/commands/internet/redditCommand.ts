@@ -4,8 +4,6 @@ import ClassLogger from "../../utils/logger";
 import { isSortbyValid, retrieveLatestPost } from "../../services/redditService";
 import HaramLeotta from "../..";
 
-const logger: ClassLogger = new ClassLogger("reddit");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
@@ -117,7 +115,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
                         }
                 }
             })
-            .catch(e => logger.error(e));
+            .catch(e => ClassLogger.error("Error parsing post", e));
     },
 
     // Transformer that parses the text input before invoking the core command,
@@ -138,7 +136,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
         // If there are arguments left, join the sentence and call che command
         command({ groupId: msg.channel.id, subreddit, sortby, nsfw: (msg.channel as TextChannel)?.nsfw },
             function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-                msg.channel.send(reply).catch(e => logger.error("Message reply error: " + e));
+                msg.channel.send(reply).catch(e => ClassLogger.error("Message reply error", e));
             }
         )
     }

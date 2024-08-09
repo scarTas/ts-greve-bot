@@ -67,8 +67,6 @@ export default class HaramLeotta extends Client {
     }
 
     /* ==== INSTANCE PROPERTIES & METHODS =================================== */
-    /** Instance logger with default prefix. */
-    public logger = new ClassLogger("HaramLeotta");
     /** Current bot release version. */
     public version: string;
     /** Color to be used for all of the created embeds. */
@@ -76,18 +74,18 @@ export default class HaramLeotta extends Client {
 
     /** Define bot startup behaviour - login and start listening to events. */
     public init = () => {
-        this.logger.info(`Deployment started on env [${process.env.NODE_ENV}] and version [${this.version}]`);
+        ClassLogger.info(`Deployment started on env [${process.env.NODE_ENV}] and version [${this.version}]`);
 
         // Bot login
         this.login(process.env.TOKEN);
 
         // On bot login event, execute only once     
         this.once("ready", onReady);
-        this.logger.info("Listening on event 'ready'");
+        ClassLogger.info("Listening on event 'ready'");
 
         // On message created (sent), execute every time  
         this.on("messageCreate", onMessageCreate);
-        this.logger.info("Listening on event 'messageCreate'");
+        ClassLogger.info("Listening on event 'messageCreate'");
     }
 
     /** Update bot custom activity and yellow status (presence) on startup */
@@ -108,5 +106,5 @@ HaramLeotta.get().init();
 
 /*
 process.on("unhandledRejection", e => {
-	HaramLeotta.get().logger.error(`Unhandled promise rejection: ${e}`);
+	ClassLogger.error(`Unhandled promise rejection: ${e}`);
 })*/

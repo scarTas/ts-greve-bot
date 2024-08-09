@@ -3,8 +3,6 @@ import { isLanguageValid, translate } from "../../services/translateService";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
-const logger: ClassLogger = new ClassLogger("translate");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
@@ -19,7 +17,7 @@ const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: st
         // Search for the first article that matches the query and compose uri
         translate(query, toLanguage!, fromLanguage)
             ?.then(text => text && callback({ content: text }))
-            .catch(e => logger.error(e));
+            .catch(e => ClassLogger.error("Error during translation", e));
     },
 
     // Transformer that parses the text input before invoking the core command,

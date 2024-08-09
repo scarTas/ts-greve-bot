@@ -27,7 +27,7 @@ export abstract class MusicQueue {
     private loopPolicy: LoopPolicy;
 
     /* ==== ABSTRACT METHODS ================================================ */
-    public abstract play(): boolean;
+    public abstract play(): Promise<boolean>;
     public abstract stop(): void;
 
     /* ==== PRIVATE METHODS ================================================= */

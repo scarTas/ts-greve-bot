@@ -19,6 +19,8 @@ function getEnvLogLevel(): LogLevel {
     return LogLevel.DEBUG;
 }
 
+const packageEnabled = process.env.LOG_PACKAGE_ENABLED ?? true;
+
 /* ==== TYPE DEFINITION ===================================================== */
 export default class ClassLogger {
 
@@ -33,11 +35,49 @@ export default class ClassLogger {
         this.level = logLevel ?? getEnvLogLevel();
     }
 
-    /* ==== PROPERTIES ====================================================== */
-    /** Get default logging level from environment - if none, INFO. */
-    private level: LogLevel;
-    /** Log prefix containing class name or package path. */
-    private prefix: string;
+    static getPackage() {
+        if(!packageEnabled) return undefined;
+        try {
+            // Artificially create stack trace
+            const stack: string | undefined = new Error().stack;
+            if(!stack) return "";
+
+            // Assuming the code is inside the /src/ directory (and there are
+            // not /src/ directories inside the /src/ directory) and that the
+            // file extension is ejs, js or ts, retrieve the caller fileName.
+            let filePath: string | undefined = stack.split("\n", 5)[4];
+
+            const regex = /at (.+?) \(/;
+            const match = filePath.match(regex);
+            let functionName = "";
+            if (match) {
+                functionName = `::${match[1]}`;
+            }
+
+            filePath = filePath.split("src").pop();
+            if(!filePath) return "";
+            filePath = filePath.split(/\.e?[tj]s/g, 1)[0];
+
+            // Retrieve directory chain
+            let dirs = filePath.split(/[/\\]/g);
+            // Remove first empty element
+            dirs.shift();
+            // Save fileName
+            const fileName = dirs.pop();
+            if(!fileName) return "";
+            // Shorten directories to their first letter
+            dirs = dirs.map(d => d.charAt(0));
+            // Add complete fileName
+            dirs.push(fileName);
+            // Recreate path with short package names and '.'s instead of '/'s.
+            const pkg = dirs.join(".");
+
+            return ` [${pkg}${functionName}]`;
+        } catch(e) {
+            console.error("Error retrieving package", e);
+            return "";
+        }
+    }
 
     /* ==== STATIC METHODS ================================================== */
     /** Logger date options - format "20/05/2024, 22:06:31.531". */
@@ -51,16 +91,22 @@ export default class ClassLogger {
      *  Ex: "[INFO] 20/05/2024, 22:06:31.531 [//] Hello world!" */
     private static print = (s: string, level: string, color: Color, e?: Error): void => {
         const { requestId, commandId, userId } = getContextInfo();
-        const log = `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET} [${commandId}/${userId}/${requestId}] ${s}`;
+        const log = `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET}${ClassLogger.getPackage()} [${commandId}/${userId}/${requestId}] ${s}`;
         e ? console.error(log, e) : console.log(log);
     }
 
-    public static trace = (s: string) => ClassLogger.print(s, "TRACE", Color.PURPLE);
-    public static debug = (s: string) => ClassLogger.print(s, "DEBUG", Color.BLUE);
-    public static info = (s: string) => ClassLogger.print(s, "INFO", Color.GREEN);
-    public static warn = (s: string) => ClassLogger.print(s, "WARN", Color.YELLOW);
-    public static error = (s: string, e?: Error) => ClassLogger.print(s, "ERROR", Color.RED, e);
+    public static trace = (s: string) => ClassLogger.print(s, "TRC", Color.PURPLE);
+    public static debug = (s: string) => ClassLogger.print(s, "DBG", Color.BLUE);
+    public static info = (s: string) => ClassLogger.print(s, "INF", Color.GREEN);
+    public static warn = (s: string, e?: Error) => ClassLogger.print(s, "WRN", Color.YELLOW, e);
+    public static error = (s: string, e?: Error) => ClassLogger.print(s, "ERR", Color.RED, e);
     
+    /* ==== PROPERTIES ====================================================== */
+    /** Get default logging level from environment - if none, INFO. */
+    private level: LogLevel;
+    /** Log prefix containing class name or package path. */
+    private prefix: string;
+
     /* ==== INSTANCE METHODS ================================================ */
     /** Prepares and formats prefix text. */
     private getPrefix = (): string => `[${Color.BRIGHT}${this.prefix}${Color.RESET}] `;

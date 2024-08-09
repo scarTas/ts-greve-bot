@@ -5,8 +5,6 @@ import he from "he";
 import { sleep } from '../utils/sleep';
 
 /* ==== PROPERTIES ========================================================== */
-const logger = new ClassLogger("Reddit");
-
 /** Maximum number of reddit subreddits that can be saved in cache.
  *  This number affect the number of subreddits that can be navigated
  *  at the same time, without losing track of seen post and current page. */
@@ -48,7 +46,7 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
     //! Node is single-threaded.
     while(locks.has(groupId)) await sleep(0);
     locks.add(groupId);
-    logger.trace(groupId + " locked");
+    ClassLogger.trace(groupId + " locked");
 
     try {
         // Retrieve cached channel - If there is no entry, create it.
@@ -65,9 +63,9 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
         // If there is no entry or the cached subreddits queue is empty,
         // fetch new posts for subreddit and sortBy config.
         if (!sub || !sub.posts.length) {
-            logger.debug("Cache missed, retrieving new posts");
+            ClassLogger.debug("Cache missed, retrieving new posts");
             sub = await getPosts(subredditName, sortby, sub?.after)
-                .catch( e => logger.error(e));
+                .catch( e => ClassLogger.error("Error retrieving posts", e));
             // If the requested sub is invalid, do nothing
             if(!sub) return;
             subredditMap.set(subredditKey, sub);
@@ -94,7 +92,7 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
     } finally {
         // Whatever happens, remove lock at all costs
         locks.delete(groupId);
-        logger.trace(groupId + " unlocked");
+        ClassLogger.trace(groupId + " unlocked");
     }
 }
 

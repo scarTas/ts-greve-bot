@@ -3,8 +3,6 @@ import { getArticleUri, isLanguageValid, searchArticleTitles } from "../../servi
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
-const logger: ClassLogger = new ClassLogger("wiki");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
@@ -18,7 +16,7 @@ const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string },
         searchArticleTitles(query, 5, language)
             .then(articles => getArticleUri(articles[0], language))
             .then(uri => callback({ content: uri }))
-            .catch(e => { logger.error("", e); callback({ content: "??" }) });
+            .catch(e => { ClassLogger.error("Error retrieving article", e); callback({ content: "??" }) });
     },
 
     // Transformer that parses the text input before invoking the core command,

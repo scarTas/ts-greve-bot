@@ -16,7 +16,7 @@ export let availableLanguages: Set<string> | undefined = undefined;
 // On startup, initialize availableLanguages Set
 getLanguages()
     .then(languages => availableLanguages = new Set(languages))
-    .catch(e => logger.error("Error initializing languages: ", e));
+    .catch(e => ClassLogger.error("Error initializing languages", e));
 
 /* ==== METHODS ============================================================= */
 /** Checks whether the provided language is supported by Wikipedia or not. */

@@ -21,7 +21,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
 
     // TODO: handle youtube selection
     // Check if the user is choosing a track from the YoutubeNavigator
-    //if(checkYoutube(msg)?.catch(e => logger.error("YoutubeNavigator selection error: " + e))) return;   
+    //if(checkYoutube(msg)?.catch(e => ClassLogger.error("YoutubeNavigator selection error", e))) return;   
 
     // Normalize message content
     const lowerCaseContent: string = msg.content.toLowerCase();
@@ -67,7 +67,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
             setCommandId(commandName);
-            logger.info(msg.content);
+            ClassLogger.info(msg.content);
             return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
         }
         
@@ -116,7 +116,7 @@ function getInsult(content: string): string | undefined {
  *  method scope creating the function when needed. */
 export function getSimpleMessageCallback(msg: Message): (reply: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[] }) => void {
     return function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-        msg.reply(reply).catch(e => logger.error("Message reply error: " + e));
+        msg.reply(reply).catch(e => ClassLogger.error("Message reply error: " + e));
     }
 }
 
@@ -149,13 +149,13 @@ export async function registerCommands() {
     const defaultExportsArray: CommandMetadata<any, any>[] = await loadDefaultExports(directoryPath);
   
     for(const commandMetadata of defaultExportsArray) {
-      //logger.trace(`Registering command '${commandMetadata.aliases[0]}'`);
+      //ClassLogger.trace(`Registering command '${commandMetadata.aliases[0]}'`);
       for(const alias of commandMetadata.aliases) {
           commandMetadatas[alias] = commandMetadata;
       }
     }
 
-    logger.debug("All commands registered");
+    ClassLogger.debug("All commands registered");
 }
 
     /*

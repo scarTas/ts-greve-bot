@@ -7,7 +7,6 @@ import { getUserFromMessage } from "../../services/userService";
 
 export const fileRegex = /^https?:\/\/.*$/;
 const baseImage: string = "./assets/images/drip.png";
-const logger: ClassLogger = new ClassLogger("drip");
 
 /** Define command metadata and handler methods for text and slash commands. */
 const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
@@ -28,7 +27,7 @@ const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { fil
         // Add provided image to drip base image and invoke callback on success
         overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
             .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
-            .catch(e => logger.warn(e) );
+            .catch(e => ClassLogger.warn("Error overlapping images", e) );
     },
 
     // Transformer that parses the text input before invoking the core command,

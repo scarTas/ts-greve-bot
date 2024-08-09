@@ -7,7 +7,6 @@ import { fileRegex } from "./dripCommand";
 import { getUserFromMessage } from "../../services/userService";
 
 const baseImage: string = "./assets/images/lessgo.png";
-const logger: ClassLogger = new ClassLogger("lessgo");
 
 /** Define command metadata and handler methods for text and slash commands. */
 const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
@@ -31,7 +30,7 @@ const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { f
             { path, xPos: 330, yPos: 75, xRes: 50, yRes: 50, round: true }
         ])
             .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
-            .catch(e => logger.warn(e) );
+            .catch(e => ClassLogger.warn("Error overlapping images", e) );
     },
 
     // Transformer that parses the text input before invoking the core command,

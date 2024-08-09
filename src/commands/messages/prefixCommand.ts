@@ -3,8 +3,6 @@ import { getUserPrefix, updateUserPrefix } from "../../services/mongoService";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
-const logger: ClassLogger = new ClassLogger("prefix");
-
 /** Define command metadata and handler methods for text and slash commands. */
 const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
@@ -18,11 +16,11 @@ const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string },
         if(!prefix?.length) {
             getUserPrefix(userId)
                 .then(p => callback({ content: `Current prefix is \`${p ?? process.env.PREFIX}\`.` }))
-                .catch( e => logger.error(e) );
+                .catch( e => ClassLogger.error("Error retrieving user prefix", e) );
         } else {
             updateUserPrefix(userId, prefix)
                 .then(() => callback({ content: `Prefix set to \`${prefix}\`.` }))
-                .catch( e => logger.error(e) );
+                .catch( e => ClassLogger.error("Error updating user prefix", e) );
         }
     },
 

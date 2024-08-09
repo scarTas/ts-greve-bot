@@ -1,6 +1,5 @@
-import { Message, User } from "discord.js";
 import { UserModel, IUserModel } from "../data/model/userModel";
-import { mongooseLogger } from "../data/mongoose";
+import ClassLogger from "../utils/logger";
 
 /** Retrieve user from database, if any. */
 function getUser(id: string): Promise<IUserModel | null> {
@@ -14,7 +13,7 @@ export async function getUserPrefix(id: string): Promise<string | undefined> {
         const user = await getUser(id);
         return user?.prefix;
     } catch (e) {
-        mongooseLogger.error(`Error during query: ${e}`);
+        ClassLogger.error("Error during query", e as Error);
     }
 }
 
@@ -27,8 +26,8 @@ export async function updateUserPrefix(id: string, prefix: string): Promise<void
         user.prefix = prefix;
         // Save model to database
         await user.save();
-        mongooseLogger.debug("Prefix updated");
+        ClassLogger.debug("Prefix updated");
     } catch(e) {
-        mongooseLogger.error(`Error during query: ${e}`);
+        ClassLogger.error("Error during query", e as Error);
     }
 }

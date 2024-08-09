@@ -7,8 +7,6 @@ import { registerCommands } from "./onMessageCreate";
 /** Event triggered when the bot has successfully logged in.
  *  Update bot activity and log some guild info. */
 export const onReady = async () => {
-    const logger = new ClassLogger("onReady");
-
     // Register commands
     await registerCommands();
 
@@ -22,8 +20,8 @@ export const onReady = async () => {
     const guilds = HaramLeotta.get().guilds.cache;
 
     // Print guilds number and names
-    logger.info(`Currently in ${guilds.size} servers`);
-    //for(const [_, guild] of guilds) self.logger.debug(`- ${guild.name}`);
+    ClassLogger.info(`Currently in ${guilds.size} servers`);
+    //for(const [_, guild] of guilds) ClassLogger.trace(`- ${guild.name}`);
 
-    logger.info(`========= Deployment completed =========`);
+    ClassLogger.info(`========= Deployment completed =========`);
 }
