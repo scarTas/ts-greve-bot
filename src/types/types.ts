@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message } from "discord.js";
 
 /* ==== COMMANDS ============================================================ */
 export type CoreCommandCallback<O> = (output: O) => void;
@@ -15,10 +15,10 @@ export type CoreCommand<I, O> = (
 export type OnMessageCreateTransformer<I, O> = (msg: Message, content: string, args: string[], command: CoreCommand<I, O>) => void
 
 // TODO
-export type OnSlashCommandTransformer = (content: any) => void
+export type OnSlashCommandTransformer<I, O> = (interaction: CommandInteraction, command: CoreCommand<I, O>) => void
 
 // TODO
-export type OnInteractionTransformer = (content: any) => void
+export type OnButtonInteractionTransformer<I, O> = (interaction: ButtonInteraction, command: CoreCommand<I, O>) => void
 
 /** Define metadata object value definition.
  *  Command metadata are mainly used for the "help" command. */
@@ -29,8 +29,8 @@ export type CommandMetadata<I, O>  = {
     usage?: string,
     command: CoreCommand<I, O>,
     onMessageCreateTransformer?: OnMessageCreateTransformer<I, O>,
-    onSlashCommandTransformer?: OnSlashCommandTransformer
-    onInteractionTransformer?: OnInteractionTransformer
+    onSlashCommandTransformer?: OnSlashCommandTransformer<I, O>,
+    onButtonInteractionTransformer?: OnButtonInteractionTransformer<I, O>
 }
 
 /* ==== REDDIT ============================================================== */

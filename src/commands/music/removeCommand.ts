@@ -1,10 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
 import { Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
-
-const logger: ClassLogger = new ClassLogger("remove");
 
 /** Define command metadata and handler methods for text and slash commands. */
 const removeCommandMetadata: CommandMetadata<{ msg: Message, index: number }, { content: string }> = {
@@ -15,7 +12,7 @@ const removeCommandMetadata: CommandMetadata<{ msg: Message, index: number }, { 
     // Actual core command with business logic implementation
     command: async ({ msg, index }, callback) => {
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-            musicPlayer.remove(index);
+            await musicPlayer.remove(index);
         });
     },
 

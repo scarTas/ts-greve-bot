@@ -1,19 +1,17 @@
 import { GuildMember, Interaction, Message, PermissionsBitField, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
 import { LoopPolicy, MusicQueue } from "./musicQueue";
-import { AudioPlayer, AudioPlayerError, AudioPlayerPlayingState, AudioPlayerState, AudioPlayerStatus, AudioResource, StreamType, VoiceConnection, VoiceConnectionDisconnectReason, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, AudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import ClassLogger from "../../utils/logger";
 import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
 import { ASong } from "./song";
 import { YoutubeSong } from "./youtubeService";
-import { DynamicMessage } from "./dynamicMessage";
+import { NowPlayingMessage } from "./nowPlayingMessage";
 
 
 export class MusicPlayer extends MusicQueue {
 
     /* ==== STATIC PROPERTIES =============================================== */
-    protected static logger = new ClassLogger("MusicPlayer");
-
     /** Map used to memorize music oplayer information relatively to servers. */
     public static cache: Map<string, MusicPlayer> = new Map();
     /** Set used to lock cache entries to aviod concurrency issues. */
@@ -44,7 +42,7 @@ export class MusicPlayer extends MusicQueue {
         // Wait for the lock to free up and lock for this process
         await MusicPlayer.lock(groupId, reason);
         try {
-            return callback();
+            return await callback();
         } finally {
             // Whatever happens, unlock instance after calback execution
             MusicPlayer.unlock(groupId, reason);
@@ -168,7 +166,7 @@ export class MusicPlayer extends MusicQueue {
         // If errors occur during reproduction, skip broken resource
         this.player.on("error", (error: AudioPlayerError) => {
             ClassLogger.error("Player error", error);
-            MusicPlayer.locking(this.groupId, () => this.skip(), "player error -> this.skip");
+            MusicPlayer.locking(this.groupId, async () => await this.skip(), "player error -> this.skip");
         });
 
         // If state transitions from Playing to Idle, a resources stopped
@@ -183,7 +181,7 @@ export class MusicPlayer extends MusicQueue {
                 && newState.status === AudioPlayerStatus.Idle
                 && !(newState as any).manual
             ) {
-                MusicPlayer.locking(this.groupId, () => this.skip(), "player stateChange -> finished");
+                MusicPlayer.locking(this.groupId, async () => await this.skip(), "player stateChange -> finished");
             }
         });
 
@@ -191,7 +189,7 @@ export class MusicPlayer extends MusicQueue {
         // create dynamic message.
         if(textChannel) {
             ClassLogger.debug("Valid textChannel");
-            this.nowPlayingMessage = new DynamicMessage(textChannel);
+            this.nowPlayingMessage = new NowPlayingMessage(textChannel);
         }
     }
 
@@ -213,7 +211,7 @@ export class MusicPlayer extends MusicQueue {
      *  playing and metadata and other settings (volume, duration, ...). */
     public resource: AudioResource | undefined = undefined;
 
-    public nowPlayingMessage: DynamicMessage | undefined;
+    public nowPlayingMessage: NowPlayingMessage | undefined;
 
     /* ==== METHODS ========================================================= */
     /** Connect the bot to the selected voice channel, if the connection hasn't
@@ -271,8 +269,14 @@ export class MusicPlayer extends MusicQueue {
 
     /** Returns true if the song is a valid resource and started playing. */
     public async play(): Promise<boolean> {
+        ClassLogger.trace("Entering MusicPlayer::play()");
+
         const song: ASong | undefined = super.getCurrent();
-        if (!song) return false;
+        if (!song) {
+            // If no song has to be played, delete nowPlayingMessage
+            await this.nowPlayingMessage?.delete();
+            return false;
+        }
 
         // TODO: transform special types (e.g. Spotify to Youtube)
         const stream: Readable = song.getStream();
@@ -293,17 +297,21 @@ export class MusicPlayer extends MusicQueue {
         // Apply player to connection?
 
         // Update dynamic message displaying the currently playing song
-        await this.nowPlayingMessage
-            ?.setContent("Now playing: " + song.title)
-            .then(dm => dm.resend());
+        await this.nowPlayingMessage?.updateContent(this)?.resend();
 
         return true;
     }
 
-    public stop() {
+    public async stop() {
+        ClassLogger.trace("Entering MusicPlayer::stop()");
+
         // Assert player is unpaused first
         //this.unpause();
 
+        // Message is not deleted here: if play() is called after the player has
+        // stopped, it will update the message:
+        // - if another song is played, the message is updated (or resent)
+        // - if no song is left, the message is deleted
         (this.player.stop as any)(true, true);
     }
 
@@ -318,24 +326,35 @@ export class MusicPlayer extends MusicQueue {
     }
 
     /** Pauses the current playing resource. */
-    public pause() {
+    public async pause(): Promise<void> {
         this.player.pause();
+
+        // Update queue message
+        await this.nowPlayingMessage?.updateContent(this)?.resend();
     }
 
     /** Resumes the current paused resource. */
-    public unpause() {
+    public async unpause(): Promise<void> {
         this.player.unpause();
+
+        // Update queue message
+        await this.nowPlayingMessage?.updateContent(this)?.resend();
     }
 
     /** Stops the current resource from playing and disconnects the bot;
      *  removes this music player from the global cache and cleans pending
      *  event listeners to prevent memory leaks. */
-    public destroy() {
-        this.stop();
+    public async destroy() {
+        await this.stop();
+        await this.nowPlayingMessage?.delete();
         this.disconnect();
         this.player.removeAllListeners();
         this.connection?.removeAllListeners();
         MusicPlayer.cache.delete(this.groupId);
+    }
+
+    public async resendDynamicMessages(): Promise<void> {
+         await this.nowPlayingMessage?.updateContent(this)?.resend();
     }
 }
 

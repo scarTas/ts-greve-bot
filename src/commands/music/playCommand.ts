@@ -34,7 +34,7 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
         MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
             if(song) {
                 // If the added song is the first in queue, start playing
-                musicPlayer.add(song);
+                await musicPlayer.add(song);
             }
             
             else {

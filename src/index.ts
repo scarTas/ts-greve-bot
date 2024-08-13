@@ -2,6 +2,7 @@ import { GatewayIntentBits, Options, Client, ActivityType, CacheFactory, ColorRe
 import ClassLogger from "./utils/logger";
 import { onReady } from './events/onReady';
 import onMessageCreate from './events/onMessageCreate';
+import onInteractionCreate from './events/onInteractionCreate';
 
 /* ==== TYPE DEFINITION ===================================================== */
 /** Constant for all embeds sent, but not meaningful as bot instance propery. */
@@ -86,6 +87,10 @@ export default class HaramLeotta extends Client {
         // On message created (sent), execute every time  
         this.on("messageCreate", onMessageCreate);
         ClassLogger.info("Listening on event 'messageCreate'");
+
+        // On message created (sent), execute every time  
+        this.on("interactionCreate", onInteractionCreate);
+        ClassLogger.info("Listening on event 'interactionCreate'");
     }
 
     /** Update bot custom activity and yellow status (presence) on startup */

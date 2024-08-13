@@ -1,11 +1,8 @@
 import { EmbedBuilder, User } from "discord.js";
 import { CommandMetadata } from "../../types/types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import ClassLogger from "../../utils/logger";
 import HaramLeotta from "../..";
 import { getUserFromMessage } from "../../services/userService";
-
-const logger: ClassLogger = new ClassLogger("pic");
 
 /** Define command metadata and handler methods for text and slash commands. */
 const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder[] }> = {

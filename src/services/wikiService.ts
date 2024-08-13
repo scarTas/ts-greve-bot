@@ -2,8 +2,6 @@ import axios from "axios";
 import ClassLogger from "../utils/logger";
 
 /* ==== PROPERTIES ========================================================== */
-const logger = new ClassLogger("WikiService");
-
 /** Default query params to be used for all Wikipedia API calls. */
 const defParams = {
     origin: "*",    // This is needed to avoid CORS issues
@@ -16,7 +14,7 @@ export let availableLanguages: Set<string> | undefined = undefined;
 // On startup, initialize availableLanguages Set
 getLanguages()
     .then(languages => availableLanguages = new Set(languages))
-    .catch(e => ClassLogger.error("Error initializing languages", e));
+    .catch(e => ClassLogger.error("Error initializing languages: ", e));
 
 /* ==== METHODS ============================================================= */
 /** Checks whether the provided language is supported by Wikipedia or not. */

@@ -1,5 +1,4 @@
 import { ISong } from "../../data/model/userModel";
-import { YoutubeSong } from "./youtubeService";
 import { Readable } from 'stream';
 
 export enum SongType { YOUTUBE, YOUTUBE_MIX, SOUNDCLOUD, SPOTIFY }

@@ -6,12 +6,11 @@ import { getUserPrefix } from "../services/mongoService";
 import { readdir } from 'fs/promises';
 import * as path from 'path';
 
-const logger = new ClassLogger("onMessageCreate");
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
 export default function (msg: Message): void {
     // Before executing any logic, initialize context for verbose logging
-    initializeContext({ userId: msg.author.username }, () => onMessageCreate(msg));
+    initializeContext({ userId: msg.author.username, serverId: msg.guildId }, () => onMessageCreate(msg));
 }
 
 /** Handle newly created message and reply if a command is called. */
@@ -66,7 +65,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
         // correctly prepare input parameters and handle callbacks
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
-            setCommandId(commandName);
+            setCommandId(commandMetadata.aliases[0]);
             ClassLogger.info(msg.content);
             return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
         }

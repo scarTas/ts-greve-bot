@@ -64,6 +64,7 @@ services:
       # Node configuration
       NODE_ENV: dev
       VERSION: ${VERSION}
+      LOG_LEVEL: ${LOG_LEVEL}
 
     # Build image from Dockerfile in the current directory and override its CMD.
     build: .

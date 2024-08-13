@@ -1,3 +1,4 @@
+import ClassLogger from "../../utils/logger";
 import { ASong } from "./song";
 
 /* ==== TYPE DEFINITION ===================================================== */
@@ -17,18 +18,19 @@ export abstract class MusicQueue {
     /** Cache of songs that have already been played.
      *  Used for commands that rewind the playlist to play skipped songs.
      *  The cache has a maximum size defined by property `this.cacheSize`. */
-    private cache: ASong[] = [];
+    public cache: ASong[] = [];
     /** Max size of played songs cache. Provided as a constructor parameter. */
     private cacheSize: number;
     /** Changes the `skip()` command behaviour.
      *  "NONE": `skip()` effectively removes the current song.
      *  "SONG": `skip()` has no effect on queue - current song is played again.
      *  "ALL": `skip()` puts current song at the top of the queue. */
-    private loopPolicy: LoopPolicy;
+    public loopPolicy: LoopPolicy;
 
     /* ==== ABSTRACT METHODS ================================================ */
     public abstract play(): Promise<boolean>;
-    public abstract stop(): void;
+    public abstract stop(): Promise<void>;
+    public abstract resendDynamicMessages(): Promise<void>;
 
     /* ==== PRIVATE METHODS ================================================= */
     /** Adds a song at last position of the cached songs.
@@ -48,13 +50,17 @@ export abstract class MusicQueue {
 
     /* ==== METHODS ========================================================= */
     /** Add a new song to the queue. */
-    public add(song: ASong) {
+    public async add(song: ASong): Promise<void> {
+        ClassLogger.trace("Entering MusicQueue::add()");
+
         this.queue.push(song);
 
         // If queue was empty, play new song
         // TODO: ok?
         if(this.queue.length == 1) {
-            this.play();
+            await this.play();
+        } else {
+            await this.resendDynamicMessages();
         }
     }
 
@@ -63,7 +69,9 @@ export abstract class MusicQueue {
      *  "NONE": effectively removes and caches the current song (if any).
      *  "SONG": has no effect on queue - current song is played again.
      *  "ALL": puts current song at the top of the queue. */
-    public skip() {
+    public async skip(): Promise<void> {
+        ClassLogger.trace("Entering MusicPlayer::skip()");
+
         if(this.loopPolicy === LoopPolicy.NONE) {
             const song = this.queue.shift();
             if(song) this.addToCache(song);
@@ -71,40 +79,42 @@ export abstract class MusicQueue {
         
         else if(this.loopPolicy === LoopPolicy.ALL) {
             const song = this.queue.shift();
-            if(song) this.add(song);
+            if(song) await this.add(song);
         } 
         // If LoopPolicy.SONG, queue is not to be modified, play current song
 
         // After updating queue, stop current song and play new one
         // TODO: ok?
-        this.stop();
-        this.play();
+        await this.stop();
+        await this.play();
     }
 
     /** Remove last cache element (latest played song).
      *  If the cache wasn't empty, save song to played songs cache. */
-    public back() {
+    public async back(): Promise<void> {
         const song = this.cache.pop();
         if(song) this.queue.unshift(song);
         
         // After updating queue, stop current song and play new one
         // TODO: ok?
-        this.stop();
-        this.play();
+        await this.stop();
+        await this.play();
     }
 
     /** Remove an element from the current queue, without caching the removed
      *  song. If the removed song was currently playing, the new current song
      *  must be played. */
-    public remove(index: number) {
+    public async remove(index: number): Promise<void> {
         this.queue.splice(index, 1);
 
         // If the removed song is at position 0, it means it is being played.
         // Stop it and play the new one in queue (if any).
         // TODO: ok?
         if(index == 0) {
-            this.stop();
-            this.play();
+            await this.stop();
+            await this.play();
+        } else {
+            await this.resendDynamicMessages();
         }
     }
 
@@ -112,9 +122,11 @@ export abstract class MusicQueue {
 
     /** Updates the current loop policy for this player.
      *  If no policy is specified, it is updated based on current setting. */
-    public setLoopPolicy(loopPolicy?: LoopPolicy) {
+    public async setLoopPolicy(loopPolicy?: LoopPolicy): Promise<void> {
         if(loopPolicy)  this.loopPolicy = loopPolicy;
         else            this.toggleLoopPolicy();
+
+        await this.resendDynamicMessages();
     }
 
     /** Updates the current loop policy based on the current setting. */

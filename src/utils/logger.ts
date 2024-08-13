@@ -19,21 +19,12 @@ function getEnvLogLevel(): LogLevel {
     return LogLevel.DEBUG;
 }
 
+const logLevel = getEnvLogLevel();
+
 const packageEnabled = process.env.LOG_PACKAGE_ENABLED ?? true;
 
 /* ==== TYPE DEFINITION ===================================================== */
 export default class ClassLogger {
-
-    /* ==== CONSTRUCTOR ===================================================== */
-    /** Sets the prefix for this logger instance. If only the clasName is
-     *  provided, that will be used as prefix - if directory name is als
-     *  provided, the prefix will also contain the package path. */
-    constructor(className: string, dirname?: string, logLevel?: LogLevel) {
-        this.prefix = dirname
-        ? (dirname.split("/src/", 2)[1].replace(/\//g, '.').replace(/\.[tj]?s/, '') + ( className ? ('.'+className) : "" ))
-        : className;
-        this.level = logLevel ?? getEnvLogLevel();
-    }
 
     static getPackage() {
         if(!packageEnabled) return undefined;
@@ -50,9 +41,9 @@ export default class ClassLogger {
             const regex = /at (.+?) \(/;
             const match = filePath.match(regex);
             let functionName = "";
-            if (match) {
+            /*if (match) {
                 functionName = `::${match[1]}`;
-            }
+            } */
 
             filePath = filePath.split("src").pop();
             if(!filePath) return "";
@@ -79,7 +70,6 @@ export default class ClassLogger {
         }
     }
 
-    /* ==== STATIC METHODS ================================================== */
     /** Logger date options - format "20/05/2024, 22:06:31.531". */
     static dateOptions: Intl.DateTimeFormatOptions = {
         year: "numeric", month: "numeric", day: "numeric",
@@ -90,30 +80,14 @@ export default class ClassLogger {
     /** Prints coloured log level and timestamp, followed by the given string.
      *  Ex: "[INFO] 20/05/2024, 22:06:31.531 [//] Hello world!" */
     private static print = (s: string, level: string, color: Color, e?: Error): void => {
-        const { requestId, commandId, userId } = getContextInfo();
-        const log = `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET}${ClassLogger.getPackage()} [${commandId}/${userId}/${requestId}] ${s}`;
+        const { commandId, userId, serverId, requestId } = getContextInfo();
+        const log = `\r[${color}${level}${Color.RESET}]${Color.BRIGHT} ${Color.DIM}${new Date().toLocaleTimeString("en-GB", ClassLogger.dateOptions)}${Color.RESET}${ClassLogger.getPackage()} [${commandId}/${userId}/${serverId}/${requestId}] ${s}`;
         e ? console.error(log, e) : console.log(log);
     }
 
-    public static trace = (s: string) => ClassLogger.print(s, "TRC", Color.PURPLE);
-    public static debug = (s: string) => ClassLogger.print(s, "DBG", Color.BLUE);
-    public static info = (s: string) => ClassLogger.print(s, "INF", Color.GREEN);
-    public static warn = (s: string, e?: Error) => ClassLogger.print(s, "WRN", Color.YELLOW, e);
-    public static error = (s: string, e?: Error) => ClassLogger.print(s, "ERR", Color.RED, e);
-    
-    /* ==== PROPERTIES ====================================================== */
-    /** Get default logging level from environment - if none, INFO. */
-    private level: LogLevel;
-    /** Log prefix containing class name or package path. */
-    private prefix: string;
-
-    /* ==== INSTANCE METHODS ================================================ */
-    /** Prepares and formats prefix text. */
-    private getPrefix = (): string => `[${Color.BRIGHT}${this.prefix}${Color.RESET}] `;
-
-    public trace = (s: string) => { (this.level <= LogLevel.TRACE) && ClassLogger.trace(this.getPrefix() + s) };
-    public debug = (s: string) => { (this.level <= LogLevel.DEBUG) && ClassLogger.debug(this.getPrefix() + s) };
-    public info = (s: string) => { (this.level <= LogLevel.INFO) && ClassLogger.info(this.getPrefix() + s) };
-    public warn = (s: string) => { (this.level <= LogLevel.WARN) && ClassLogger.warn(this.getPrefix() + s) };
-    public error = (s: string = "", e?: Error) => { ClassLogger.error(this.getPrefix() + s, e) };
+    public static trace = (s: string) => (logLevel <= LogLevel.TRACE) && ClassLogger.print(s, "TRC", Color.PURPLE);
+    public static debug = (s: string) => (logLevel <= LogLevel.DEBUG) && ClassLogger.print(s, "DBG", Color.BLUE);
+    public static info = (s: string) => (logLevel <= LogLevel.INFO) && ClassLogger.print(s, "INF", Color.GREEN);
+    public static warn = (s: string, e?: Error) => (logLevel <= LogLevel.WARN) && ClassLogger.print(s, "WRN", Color.YELLOW, e);
+    public static error = (s: string, e?: Error) => (logLevel <= LogLevel.ERROR) && ClassLogger.print(s, "ERR", Color.RED, e);
 }
