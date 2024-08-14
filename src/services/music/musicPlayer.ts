@@ -7,6 +7,7 @@ import { sleep } from "../../utils/sleep";
 import { ASong } from "./song";
 import { YoutubeSong } from "./youtubeService";
 import { NowPlayingMessage } from "./nowPlayingMessage";
+import { QueueMessage } from "./queueMessage";
 
 
 export class MusicPlayer extends MusicQueue {
@@ -190,6 +191,7 @@ export class MusicPlayer extends MusicQueue {
         if(textChannel) {
             ClassLogger.debug("Valid textChannel");
             this.nowPlayingMessage = new NowPlayingMessage(textChannel);
+            this.queueMessage = new QueueMessage(textChannel);
         }
     }
 
@@ -212,6 +214,7 @@ export class MusicPlayer extends MusicQueue {
     public resource: AudioResource | undefined = undefined;
 
     public nowPlayingMessage: NowPlayingMessage | undefined;
+    public queueMessage: QueueMessage | undefined;
 
     /* ==== METHODS ========================================================= */
     /** Connect the bot to the selected voice channel, if the connection hasn't
@@ -272,12 +275,8 @@ export class MusicPlayer extends MusicQueue {
         ClassLogger.trace("Entering MusicPlayer::play()");
 
         const song: ASong | undefined = super.getCurrent();
-        if (!song) {
-            // If no song has to be played, delete nowPlayingMessage
-            await this.nowPlayingMessage?.delete();
-            return false;
-        }
-
+        if (!song) return false;
+        
         // TODO: transform special types (e.g. Spotify to Youtube)
         const stream: Readable = song.getStream();
 
@@ -347,6 +346,7 @@ export class MusicPlayer extends MusicQueue {
     public async destroy() {
         await this.stop();
         await this.nowPlayingMessage?.delete();
+        await this.queueMessage?.delete();
         this.disconnect();
         this.player.removeAllListeners();
         this.connection?.removeAllListeners();
@@ -354,7 +354,15 @@ export class MusicPlayer extends MusicQueue {
     }
 
     public async resendDynamicMessages(): Promise<void> {
-         await this.nowPlayingMessage?.updateContent(this)?.resend();
+        await this.nowPlayingMessage?.updateContent(this)?.resend();
+        if(this.queueMessage?.message) {
+            await this.queueMessage?.updateContent(this)?.update();
+        }
+    }
+
+    public async deleteDynamicMessages(): Promise<void> {
+        await this.nowPlayingMessage?.delete();
+        await this.queueMessage?.delete();
     }
 }
 

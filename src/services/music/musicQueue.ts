@@ -31,6 +31,7 @@ export abstract class MusicQueue {
     public abstract play(): Promise<boolean>;
     public abstract stop(): Promise<void>;
     public abstract resendDynamicMessages(): Promise<void>;
+    public abstract deleteDynamicMessages(): Promise<void>;
 
     /* ==== PRIVATE METHODS ================================================= */
     /** Adds a song at last position of the cached songs.
@@ -86,7 +87,12 @@ export abstract class MusicQueue {
         // After updating queue, stop current song and play new one
         // TODO: ok?
         await this.stop();
-        await this.play();
+        const playing = await this.play();
+
+        // If no song has started playing, delete
+        if(!playing) {
+            await this.deleteDynamicMessages();
+        }
     }
 
     /** Remove last cache element (latest played song).
