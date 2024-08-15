@@ -30,7 +30,7 @@ export abstract class MusicQueue {
     /* ==== ABSTRACT METHODS ================================================ */
     public abstract play(): Promise<boolean>;
     public abstract stop(): Promise<void>;
-    public abstract resendDynamicMessages(): Promise<void>;
+    public abstract updateDynamicMessages(): Promise<void>;
     public abstract deleteDynamicMessages(): Promise<void>;
 
     /* ==== PRIVATE METHODS ================================================= */
@@ -61,7 +61,7 @@ export abstract class MusicQueue {
         if(this.queue.length == 1) {
             await this.play();
         } else {
-            await this.resendDynamicMessages();
+            await this.updateDynamicMessages();
         }
     }
 
@@ -120,7 +120,7 @@ export abstract class MusicQueue {
             await this.stop();
             await this.play();
         } else {
-            await this.resendDynamicMessages();
+            await this.updateDynamicMessages();
         }
     }
 
@@ -132,7 +132,7 @@ export abstract class MusicQueue {
         if(loopPolicy)  this.loopPolicy = loopPolicy;
         else            this.toggleLoopPolicy();
 
-        await this.resendDynamicMessages();
+        await this.updateDynamicMessages();
     }
 
     /** Updates the current loop policy based on the current setting. */

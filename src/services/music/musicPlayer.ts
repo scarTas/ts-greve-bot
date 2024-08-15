@@ -353,8 +353,8 @@ export class MusicPlayer extends MusicQueue {
         MusicPlayer.cache.delete(this.groupId);
     }
 
-    public async resendDynamicMessages(): Promise<void> {
-        await this.nowPlayingMessage?.updateContent(this)?.resend();
+    public async updateDynamicMessages(): Promise<void> {
+        await this.nowPlayingMessage?.updateContent(this)?.update();
         if(this.queueMessage?.message) {
             await this.queueMessage?.updateContent(this)?.update();
         }

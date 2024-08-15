@@ -3,6 +3,7 @@ import { DynamicMessage } from "./dynamicMessage";
 import { MusicPlayer } from "./musicPlayer";
 import { secondsToString } from "../../utils/length";
 import { ASong } from "./song";
+import ClassLogger from "../../utils/logger";
 
 const RESULTS_PER_PAGE: number = 10;
 
@@ -10,7 +11,7 @@ export class QueueMessage extends DynamicMessage {
     public currentPage: number = 0;
 
     private getLastPage(musicPlayer: MusicPlayer): number {
-        return Math.floor(musicPlayer.queue.length / RESULTS_PER_PAGE);
+        return Math.ceil(musicPlayer.queue.length / RESULTS_PER_PAGE) - 1;
     }
 
     private getContent(musicPlayer: MusicPlayer, page: number, lastPage: number): string {
@@ -21,14 +22,16 @@ export class QueueMessage extends DynamicMessage {
 
         // If provided page is negative (invalid), use 0 instead (first page)
         if(page < 0) {
-            this.currentPage = 0;
+            page = 0;
         }
 
         // If provided page is too high (first result number doesn't exist),
         // use last page instead
         if((page * RESULTS_PER_PAGE) + 1 > queue.length) {
-            this.currentPage = lastPage;
+            page = lastPage;
         }
+
+        this.currentPage = page;
 
         // Generate header with queue summary
         const queueLength: string = secondsToString(queue.reduce((total, song) => total += song.lengthSeconds || 0, 0));
@@ -41,7 +44,7 @@ export class QueueMessage extends DynamicMessage {
         // For each song in the queue, extract queue position, title and length
         const body = songs.map((s: ASong, index: number) => {
             const songLength: string = s.lengthSeconds ? secondsToString(s.lengthSeconds) : "???";
-            return `${index + 1}) ${s.title}    ${songLength}`;
+            return `${index + 1}) [${songLength}]   ${s.title}`;
         }).join("\n");
 
         // Generate footer with page summary
@@ -55,6 +58,18 @@ export class QueueMessage extends DynamicMessage {
         return header + body + footer;
     }
 
+    updateContentFirstPage(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, 0);
+    }
+    updateContentPrevious(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.currentPage - 1);
+    }
+    updateContentNext(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.currentPage + 1);
+    }
+    updateContentLastPage(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.getLastPage(musicPlayer));
+    }
     updateContent(musicPlayer: MusicPlayer, page: number = this.currentPage): DynamicMessage | undefined {
         const lastPage = this.getLastPage(musicPlayer);
 
