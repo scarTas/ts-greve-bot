@@ -5,6 +5,9 @@ import { initializeContext, setCommandId } from "../utils/contextInitializer";
 import { getUserPrefix } from "../services/mongoService";
 import { readdir } from 'fs/promises';
 import * as path from 'path';
+import { QueryMessage } from "../services/music/message/queryMessage";
+import { ASong } from "../services/music/song";
+import { MusicPlayer } from "../services/music/musicPlayer";
 
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
@@ -24,6 +27,23 @@ async function onMessageCreate(msg: Message): Promise<void> {
 
     // Normalize message content
     const lowerCaseContent: string = msg.content.toLowerCase();
+
+    // Youtube Query: if the message content is a number and there is a pending
+    // queryMessage, try to play the song on the musicPlayer
+    const number: number = parseInt(lowerCaseContent);
+    if(!isNaN(number) && number > 0) {
+        QueryMessage.get(msg, async (queryMessage: QueryMessage) => {
+            const song: ASong | undefined = queryMessage.getSong(number - 1);
+            if(song) {
+                song.requestor = msg.member?.id;
+                MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+                    await musicPlayer.add(song);
+                    await queryMessage.destroy();
+                });
+            }
+        });
+        return;
+    }
 
     // If the user has a custom prefix set, retrieve it - always use the default
     let prefix = DEFAULT_PREFIX;

@@ -1,8 +1,10 @@
 import ytdl from "@distube/ytdl-core";
 //import ytdl from "ytdl-core";
-import { secondsToString } from "../../utils/length";
+import { secondsToString, stringToSeconds } from "../../utils/length";
 import { ASong, SongType } from "./song";
 import { Readable } from 'stream';
+import ClassLogger from "../../utils/logger";
+const YouTubeSearchApi = require("youtube-search-api");
 
 export class YoutubeSong extends ASong {
 
@@ -40,6 +42,37 @@ export class YoutubeSong extends ASong {
             title, uri, lengthSeconds, secondsToString(lengthSeconds),
             thumbnails.pop()?.url
         );
+    }
+
+    public static async search(query: string, limit: number, token?: object): Promise<{ items: YoutubeSong[], nextPage?: object }> {
+        // If the token (nextPage token) is provided, use it to go to the next page
+        // TODO: handle playlists
+        let items, nextPage;
+        if(token)   ({ items, nextPage } = await YouTubeSearchApi.NextPage(token, true, limit));
+        else        ({ items, nextPage } = await YouTubeSearchApi.GetListByKeyword(query, true, limit, [{type:"video"}]));// "video/channel/playlist/movie"
+
+        // Filter youtube items with useful data
+        items = items.map(({ id, title, length, thumbnail, isLive, type }: any) => {
+
+            // Retrieve thumbnail
+            const thumb: string | undefined = thumbnail?.thumbnails?.pop()?.url;
+
+            // If item is a youtube playlist, create different instance
+            if(type === "playlist") {
+                // TODO: handle playlists
+                return undefined;
+            }
+
+            // If video is LIVE, don't calculate video length (use 0)
+            const lengthString: string = isLive ? "🔴LIVE" : length?.simpleText;
+            const lengthSeconds: number = (lengthString && lengthString.includes(':')) ? stringToSeconds(lengthString) : 0;
+
+            // Return YoutubeSong instance
+            return new YoutubeSong(title, `https://www.youtube.com/watch?v=${id}`, lengthSeconds, lengthString, thumb);
+        });
+
+        // Return parsed items and nextPage token
+        return { items, nextPage };
     }
 
     /** ==== CONSTRUCTOR ==================================================== */

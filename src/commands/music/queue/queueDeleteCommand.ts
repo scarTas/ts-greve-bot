@@ -1,17 +1,17 @@
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../../../types/types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../services/music/musicPlayer";
+import { MusicPlayer } from "../../../services/music/musicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const queuePreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
+const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "When the queue message is displayed, go to the next page",
-    aliases: ["queue-previous"],
+    category: "Music", description: "Deletes the displayed queue message",
+    aliases: ["queue-delete"],
     
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
-            await musicPlayer.queueMessage?.updateContentPrevious(musicPlayer)?.update();
+            await musicPlayer.queueMessage?.delete();
         })
         .then(() => callback());
     },
@@ -22,6 +22,7 @@ const queuePreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }
         command({ i: interaction }, () => interaction.deferUpdate())
     }
 
-    // TODO: slash command handler
+    //! onMessageCreateTransformer is not defined: this command can only be
+    //!     called by activating the queueMessage button interaction.
 }
-export default queuePreviousCommandMetadata;
+export default queueDeleteCommandMetadata;

@@ -6,8 +6,8 @@ import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
 import { ASong } from "./song";
 import { YoutubeSong } from "./youtubeService";
-import { NowPlayingMessage } from "./nowPlayingMessage";
-import { QueueMessage } from "./queueMessage";
+import { NowPlayingMessage } from "./message/nowPlayingMessage";
+import { QueueMessage } from "./message/queueMessage";
 
 
 export class MusicPlayer extends MusicQueue {
@@ -86,7 +86,7 @@ export class MusicPlayer extends MusicQueue {
 
     /** Checks whether the cpmmand sent by the user actually is in a valid text
      *  channel in which the bot has permissions. If it has, the textChannel instance is returned. */
-    protected static checkTextChannelPermissions(i: Message | Interaction): TextChannel | undefined {
+    public static checkTextChannelPermissions(i: Message | Interaction): TextChannel | undefined {
 
         // Retrieve text channel in which the command has been sent
         const channel: TextBasedChannel | null = i.channel;

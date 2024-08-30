@@ -1,20 +1,23 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { DynamicMessage } from "./dynamicMessage";
-import { ASong, SongType } from "./song";
-import HaramLeotta from "../..";
-import { MusicPlayer } from "./musicPlayer";
-import { secondsToString } from "../../utils/length";
-import { LoopPolicy } from "./musicQueue";
+import { ASong } from "../song";
+import HaramLeotta from "../../..";
+import { MusicPlayer } from "../musicPlayer";
+import { secondsToString } from "../../../utils/length";
+import { LoopPolicy } from "../musicQueue";
 import { AudioPlayerStatus } from "@discordjs/voice";
 
 export class NowPlayingMessage extends DynamicMessage {
+
+    /** Updates the content of the message displaying current playing song. */
     updateContent(musicPlayer: MusicPlayer): DynamicMessage | undefined {
         const song: ASong | undefined = musicPlayer.getCurrent();
         if(!song) return;
+        const queue: ASong[] = musicPlayer.queue;
 
         // Generate embed with song metadata
         const songLength: string = song.lengthSeconds ? secondsToString(song.lengthSeconds) : "???";
-        const queueLength: string = secondsToString(musicPlayer.queue.reduce((total, song) => total += song.lengthSeconds || 0, 0));
+        const queueLength: string = secondsToString(queue.reduce((total, song) => total += song.lengthSeconds || 0, 0));
 
         const embed: EmbedBuilder = new EmbedBuilder()
             .setColor(HaramLeotta.get().embedColor)
@@ -26,9 +29,15 @@ export class NowPlayingMessage extends DynamicMessage {
             },
             {
                 name: `Queue duration: [\`${queueLength}\`]`,
-                value: `**Enqueued songs: [\`${queueLength}\`]**`, inline: true
+                value: `**Enqueued songs: [\`${queue.length}\`]**`, inline: true
             })
 
+        if(queue.length > 1) {
+            embed.setFooter({
+                text: `Coming up: ${queue[1].title}${queue.length > 2 ? `\nLast added: ${queue[queue.length-1].title}` : ""}`,
+                iconURL: queue[1].thumbnail
+            })
+        }
         if(song.thumbnail) embed.setImage(song.thumbnail);
 
 

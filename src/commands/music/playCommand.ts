@@ -1,9 +1,11 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { MusicPlayer, getSong } from "../../services/music/musicPlayer";
-import { ASong} from "../../services/music/song";
+import { ASong } from "../../services/music/song";
+import { YoutubeSong } from "../../services/music/youtubeService";
+import { QueryMessage } from "../../services/music/message/queryMessage";
 
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
@@ -16,43 +18,47 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
     websites are Youtbe and Spotify (also, direct resources URLs such as MP3); \
     SoundCloud support is coming soon.",
     aliases: ["play", "p"], usage: "TODO",
-    
+
     // Actual core command with business logic implementation
     command: async ({ msg, uri, query }, callback) => {
-        
+
         // If user wants to play from URL, check for the website format first
         let song: ASong | undefined = undefined;
 
         // Determine url type and retrieve song - if url is invalid, throw error
-        if(uri) {
+        if (uri) {
             song = await getSong(uri);
             // TODO: define error message
-            if(!song) return;
+            if (!song) return;
+
+            song.requestor = msg.member?.id;
+
+            // If the url is valid, add to MusicPlayer queue and play
+            MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+                await musicPlayer.add(song!);
+            });
         }
 
-        // Retrieve musicPlayer entry and add song to the queue
-        MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-            if(song) {
-                // If the added song is the first in queue, start playing
-                await musicPlayer.add(song);
-            }
-            
-            else {
-                ClassLogger.info("Query not yet implemented");
-                // TODO: query for user input on youtube
-            }
-        });
+        // If input is a query, start youtube search
+        //! If another queryMessage was present, it is removed
+        else if(query) {
+            QueryMessage.get(msg, queryMessage => {
+                queryMessage
+                    .updateContent()
+                    .then(m => m?.send());
+            }, query);
+        }
     },
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
     onMessageCreateTransformer: (msg, _content, args, command) => {
-        if(!args.length) return;
+        if (!args.length) return;
 
         // Check if the user typed a URL or a simple text query
         let uri = undefined, query = undefined;
-        if(uriRegex.test(args[0])) uri = args[0];
-        else                       query = args.join(" ");
+        if (uriRegex.test(args[0])) uri = args[0];
+        else query = args.join(" ");
 
         command({ msg, uri, query }, getSimpleMessageCallback(msg))
     }

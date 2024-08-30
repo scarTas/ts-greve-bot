@@ -37,6 +37,7 @@
     "mongoose": "^8.3.5",
     "opusscript": "^0.0.8",
     "uuid": "^9.0.1",
+    "youtube-search-api": "^1.2.2",
     "ytdl-core": "^4.11.5"
   }
 }

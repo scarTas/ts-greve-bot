@@ -1,5 +1,5 @@
 import { Message, MessageCreateOptions, MessageEditOptions, MessagePayload, TextBasedChannel } from "discord.js";
-import ClassLogger from "../../utils/logger";
+import ClassLogger from "../../../utils/logger";
 
 export class DynamicMessage {
     /** Text channel in which the message will be sent. */

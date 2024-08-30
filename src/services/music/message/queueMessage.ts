@@ -1,19 +1,26 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { DynamicMessage } from "./dynamicMessage";
-import { MusicPlayer } from "./musicPlayer";
-import { secondsToString } from "../../utils/length";
-import { ASong } from "./song";
-import ClassLogger from "../../utils/logger";
+import { MusicPlayer } from "../musicPlayer";
+import { secondsToString } from "../../../utils/length";
+import { ASong } from "../song";
 
 const RESULTS_PER_PAGE: number = 10;
 
 export class QueueMessage extends DynamicMessage {
     public currentPage: number = 0;
 
-    private getLastPage(musicPlayer: MusicPlayer): number {
+    /** Calculates the last usable page index (starting from 0) for the queue
+     *  visualization. Only returns a valid index when the queue has at least
+     *  one item (otherwise, -1). */
+    private getLastPageIndex(musicPlayer: MusicPlayer): number {
         return Math.ceil(musicPlayer.queue.length / RESULTS_PER_PAGE) - 1;
     }
 
+    /** Generates the message string content containing the list of songs in the
+     *  queue for at the specified page index.
+     *  If the page number is invalid, it is normalized (if < 0, 0 is used;
+     *  if > last possible page, last page is used).
+     *  The displayed page index is saved in the queueMessage istance. */
     private getContent(musicPlayer: MusicPlayer, page: number, lastPage: number): string {
         const queue = musicPlayer.queue;
 
@@ -31,13 +38,14 @@ export class QueueMessage extends DynamicMessage {
             page = lastPage;
         }
 
+        // Update current displaying page
         this.currentPage = page;
 
         // Generate header with queue summary
         const queueLength: string = secondsToString(queue.reduce((total, song) => total += song.lengthSeconds || 0, 0));
         const header = `\`\`\`swift\n${queue.length} enqueued songs - Total duration: ${queueLength}\n\n`;
 
-        // Retrieve the first RESULT_PER_PAGE songs at the page position 
+        // Retrieve the first RESULT_PER_PAGE songs at the page index 
         const firstIndex = this.currentPage * RESULTS_PER_PAGE;
         const songs = queue.slice(firstIndex, firstIndex+RESULTS_PER_PAGE);
 
@@ -58,20 +66,10 @@ export class QueueMessage extends DynamicMessage {
         return header + body + footer;
     }
 
-    updateContentFirstPage(musicPlayer: MusicPlayer): DynamicMessage | undefined {
-        return this.updateContent(musicPlayer, 0);
-    }
-    updateContentPrevious(musicPlayer: MusicPlayer): DynamicMessage | undefined {
-        return this.updateContent(musicPlayer, this.currentPage - 1);
-    }
-    updateContentNext(musicPlayer: MusicPlayer): DynamicMessage | undefined {
-        return this.updateContent(musicPlayer, this.currentPage + 1);
-    }
-    updateContentLastPage(musicPlayer: MusicPlayer): DynamicMessage | undefined {
-        return this.updateContent(musicPlayer, this.getLastPage(musicPlayer));
-    }
-    updateContent(musicPlayer: MusicPlayer, page: number = this.currentPage): DynamicMessage | undefined {
-        const lastPage = this.getLastPage(musicPlayer);
+    /** Generates the new message content for the queueMessage and creates the
+     *  button interactions used by users to navigate the queue. */
+    public updateContent(musicPlayer: MusicPlayer, page: number = this.currentPage): DynamicMessage | undefined {
+        const lastPage = this.getLastPageIndex(musicPlayer);
 
         const content = this.getContent(musicPlayer, page, lastPage);
         
@@ -109,5 +107,22 @@ export class QueueMessage extends DynamicMessage {
 
 
         return super.setContent({ content, components: [component] });
+    }
+
+    /** Updates the message content to display the first queue page index. */
+    first(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, 0);
+    }
+    /** Updates the message content to display the previous queue page index. */
+    previous(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.currentPage - 1);
+    }
+    /** Updates the message content to display the next queue page index. */
+    next(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.currentPage + 1);
+    }
+    /** Updates the message content to display the last queue page index. */
+    last(musicPlayer: MusicPlayer): DynamicMessage | undefined {
+        return this.updateContent(musicPlayer, this.getLastPageIndex(musicPlayer));
     }
 }
