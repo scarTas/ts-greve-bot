@@ -6,8 +6,9 @@ import { getUserPrefix } from "../services/mongoService";
 import { readdir } from 'fs/promises';
 import * as path from 'path';
 import { QueryMessage } from "../services/music/message/queryMessage";
-import { ASong } from "../services/music/song";
+import { ASong, SongType } from "../services/music/song";
 import { MusicPlayer } from "../services/music/musicPlayer";
+import { getPlaylistSongs } from "../services/music/youtubeServiceLegacy";
 
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
@@ -34,10 +35,21 @@ async function onMessageCreate(msg: Message): Promise<void> {
     if(!isNaN(number) && number > 0) {
         QueryMessage.get(msg, async (queryMessage: QueryMessage) => {
             const song: ASong | undefined = queryMessage.getSong(number - 1);
+            const requestor = msg.member?.id;
             if(song) {
-                song.requestor = msg.member?.id;
+
+                let songs: ASong[];
+                if(song.type === SongType.YOUTUBE_PLAYLIST) {
+                    // URI is actually the playlist ID, not the URI
+                    songs = await getPlaylistSongs(song.uri);
+                    songs.forEach(s => s.requestor = requestor)
+                } else {
+                    song.requestor = requestor;
+                    songs = [song];
+                }
+
                 MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-                    await musicPlayer.add(song);
+                    await musicPlayer.add(...songs);
                     await queryMessage.destroy();
                 });
             }

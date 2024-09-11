@@ -6,6 +6,7 @@ import { MusicPlayer, getSong } from "../../services/music/musicPlayer";
 import { ASong } from "../../services/music/song";
 import { YoutubeSong } from "../../services/music/youtubeService";
 import { QueryMessage } from "../../services/music/message/queryMessage";
+import { getYoutubeInitData } from "../../services/music/youtubeServiceLegacy";
 
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
@@ -23,19 +24,19 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
     command: async ({ msg, uri, query }, callback) => {
 
         // If user wants to play from URL, check for the website format first
-        let song: ASong | undefined = undefined;
+        let songs: ASong[] | undefined = undefined;
 
         // Determine url type and retrieve song - if url is invalid, throw error
         if (uri) {
-            song = await getSong(uri);
+            songs = await getSong(uri);
             // TODO: define error message
-            if (!song) return;
+            if (songs === undefined) return;
 
-            song.requestor = msg.member?.id;
+            songs.forEach(s => s.requestor = msg.member?.id)
 
             // If the url is valid, add to MusicPlayer queue and play
             MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-                await musicPlayer.add(song!);
+                await musicPlayer.add(...songs!);
             });
         }
 

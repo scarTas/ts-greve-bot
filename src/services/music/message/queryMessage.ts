@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, TextBasedChannel, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, MessagePayload, TextBasedChannel, TextChannel } from "discord.js";
 import { DynamicMessage } from "./dynamicMessage";
 import { MusicPlayer } from "../musicPlayer";
 import { ASong } from "../song";
@@ -92,14 +92,19 @@ export class QueryMessage extends DynamicMessage {
 
     public query: string;
     public nextPage?: object = undefined;
+    public lastPage: number | undefined = undefined;
+
+    private getLastPage(): number {
+        return Math.ceil(this.queue.length / RESULTS_PER_PAGE) - 1;
+    }
 
     /** Generates the message string content containing the list of songs in the
      *  queue for at the specified page index.
      *  If the page number is invalid, it is normalized (if < 0, 0 is used;
      *  if > last possible page, last page is used).
      *  The displayed page index is saved in the queueMessage istance. */
-    private async getContent(page: number): Promise<string> {
-        let lastPage: number = Math.ceil(this.queue.length / RESULTS_PER_PAGE) - 1;
+    private async getContent(page: number, lastPage: number): Promise<string> {
+        //let lastPage: number = this.getLastPage();
 
         // If provided page is negative (invalid), use 0 instead (first page)
         if(page < 0) {
@@ -109,21 +114,34 @@ export class QueryMessage extends DynamicMessage {
         // If provided page is too high (first result number doesn't exist),
         // ensure the page is immediately the last one + 1 and retrieve new results
         if((page * RESULTS_PER_PAGE) + 1 > this.queue.length) {
-            page = lastPage + 1;
+            // page = lastPage + 1;
+            
             if(!this.queue.length) {
                 page = 0;
             }
 
-            const { items, nextPage } = await YoutubeSong.search(this.query, RESULTS_PER_PAGE, this.nextPage);
-            this.queue.push(...items);
-            if(!this.queue.length) return "```swift\n                             No results found.```";
+            if(this.lastPage === undefined) {
+                const { items, nextPage } = await YoutubeSong.search(this.query, RESULTS_PER_PAGE, this.nextPage);
 
-            this.nextPage = nextPage;
+                if(!items.length) {
+                    this.lastPage = lastPage;
+                    this.nextPage = undefined;
+                } else {
+                    this.queue.push(...items);
+                    this.nextPage = nextPage;
+                    
+                    // After retrieving new songs, refresh lastPage
+                    lastPage = this.getLastPage();
+                    page = lastPage;
+                }
+            }
 
-            // After retrieving new songs, refresh lastPage
-            lastPage = Math.ceil(this.queue.length / RESULTS_PER_PAGE) - 1;
+            // If last page has been reached, return previous page or empty message
+            if(this.lastPage !== undefined) {
+                if((this.content as any)?.content) return (this.content as any).content;
+                return "```swift\n                             No results found.```";
+            }
         }
-
 
         // Update current displaying page
         this.currentPage = page;
@@ -151,7 +169,8 @@ export class QueryMessage extends DynamicMessage {
     /** Generates the new message content for the queueMessage and creates the
      *  button interactions used by users to navigate the queue. */
     public async updateContent(page: number = this.currentPage): Promise<DynamicMessage | undefined> {
-        const content = await this.getContent(page);
+        const lastPage = this.getLastPage();
+        const content = await this.getContent(page, lastPage);
         
         // Generate embed reactions to be used as command shortcuts
         const component = new ActionRowBuilder().addComponents(
@@ -166,7 +185,10 @@ export class QueryMessage extends DynamicMessage {
                 .setCustomId(`query-next`)
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji("877853994326851634")
-                .setDisabled(this.queue.length === 0),
+                // If the queue length hasn't changed despite the requested page 
+                // being superior to the previous lastPage, no new songs have
+                // been retrieved - disable next page
+                .setDisabled((this.lastPage !== undefined && (page+1) > this.lastPage)),
 
             new ButtonBuilder()
                 .setCustomId(`query-delete`)

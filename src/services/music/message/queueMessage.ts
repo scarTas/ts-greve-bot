@@ -52,7 +52,7 @@ export class QueueMessage extends DynamicMessage {
         // For each song in the queue, extract queue position, title and length
         const body = songs.map((s: ASong, index: number) => {
             const songLength: string = s.lengthSeconds ? secondsToString(s.lengthSeconds) : "???";
-            return `${index + 1}) [${songLength}]   ${s.title}`;
+            return `${index + firstIndex + 1}) [${songLength}]   ${s.title}`;
         }).join("\n");
 
         // Generate footer with page summary

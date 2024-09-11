@@ -3,6 +3,8 @@ import { getUserPrefix, updateUserPrefix } from "../../services/mongoService";
 import { CommandMetadata } from "../../types/types";
 import ClassLogger from "../../utils/logger";
 
+const regex: RegExp = /^\w{0,20}$/g;
+
 /** Define command metadata and handler methods for text and slash commands. */
 const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string }, { content: string }> = {
     // Command metadata for "help" command and general info about the command
@@ -17,10 +19,18 @@ const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string },
             getUserPrefix(userId)
                 .then(p => callback({ content: `Current prefix is \`${p ?? process.env.PREFIX}\`.` }))
                 .catch( e => ClassLogger.error("Error retrieving user prefix", e) );
-        } else {
+        }
+        
+        // If the rpefix is valid, save it to database
+        else if(regex.test(prefix)) {
             updateUserPrefix(userId, prefix)
                 .then(() => callback({ content: `Prefix set to \`${prefix}\`.` }))
                 .catch( e => ClassLogger.error("Error updating user prefix", e) );
+        }
+        
+        // If the provided prefix is invalid, return error message
+        else {
+            callback({ content: `Invalid prefix: you must use at most 20 alphanumeric characters.` });
         }
     },
 

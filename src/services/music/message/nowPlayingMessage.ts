@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { DynamicMessage } from "./dynamicMessage";
-import { ASong } from "../song";
+import { ASong, SongType } from "../song";
 import HaramLeotta from "../../..";
 import { MusicPlayer } from "../musicPlayer";
 import { secondsToString } from "../../../utils/length";
@@ -32,11 +32,16 @@ export class NowPlayingMessage extends DynamicMessage {
                 value: `**Enqueued songs: [\`${queue.length}\`]**`, inline: true
             })
 
-        if(queue.length > 1) {
-            embed.setFooter({
-                text: `Coming up: ${queue[1].title}${queue.length > 2 ? `\nLast added: ${queue[queue.length-1].title}` : ""}`,
-                iconURL: queue[1].thumbnail
-            })
+            if(song.type === SongType.YOUTUBE_MIX) {
+                embed.setFooter({
+                    text: "This is a Youtube Mix! To skip it, use the `ham skipmix` command."
+                });
+            } else if(queue.length > 1) {
+                embed.setFooter({
+                    text: `Coming up: ${queue[1].title}`,
+                    iconURL: queue[1].thumbnail
+            });
+            
         }
         if(song.thumbnail) embed.setImage(song.thumbnail);
 

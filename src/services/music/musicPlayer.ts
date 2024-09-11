@@ -5,9 +5,11 @@ import ClassLogger from "../../utils/logger";
 import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
 import { ASong } from "./song";
-import { YoutubeSong } from "./youtubeService";
+import { YoutubePlaylistSong, YoutubeSong } from "./youtubeService";
 import { NowPlayingMessage } from "./message/nowPlayingMessage";
 import { QueueMessage } from "./message/queueMessage";
+import { getPlaylistSongs } from "./youtubeServiceLegacy";
+import { SpotifySong } from "./spotifyService";
 
 
 export class MusicPlayer extends MusicQueue {
@@ -277,8 +279,7 @@ export class MusicPlayer extends MusicQueue {
         const song: ASong | undefined = super.getCurrent();
         if (!song) return false;
         
-        // TODO: transform special types (e.g. Spotify to Youtube)
-        const stream: Readable = song.getStream();
+        const stream: Readable = await song.getStream();
 
         // Create audio resource with retrieved stream
         this.resource = createAudioResource(stream, {
@@ -366,12 +367,23 @@ export class MusicPlayer extends MusicQueue {
     }
 }
 
-export const getSong = async function (uri: string): Promise<ASong | undefined> {
-    // Check for Youtube first
-    let youtubeVideoId: string | undefined = YoutubeSong.getVideoId(uri);
-    if (youtubeVideoId) return await YoutubeSong.getVideoInfo(youtubeVideoId);
+export const getSong = async function (uri: string): Promise<ASong[] | undefined> {
+    let id;
 
-    // TODO: Spotify
+    // Youtube URLs test
+    let youtubeVideoId: string | undefined = YoutubeSong.getVideoId(uri);
+    if (youtubeVideoId) return [await YoutubeSong.getVideoInfo(youtubeVideoId)];
+    let youtubePlaylistId: string | undefined = YoutubePlaylistSong.getPlaylistId(uri);
+    if (youtubePlaylistId) return await getPlaylistSongs(youtubePlaylistId);
+
+    // Spotify URLs test
+    let spotifySongId: string | undefined = SpotifySong.getSongId(uri);
+    if(spotifySongId) return [await SpotifySong.getSongMetadata(spotifySongId)];
+    let spotifyAlbumId: string | undefined = SpotifySong.getAlbumId(uri);
+    if(spotifyAlbumId) return await SpotifySong.getAlbumMetadata(spotifyAlbumId);
+    let spotifyPlaylistId: string | undefined = SpotifySong.getPlaylistId(uri);
+    if(spotifyPlaylistId) return await SpotifySong.getPlaylistMetadata(spotifyPlaylistId);
+    
     // TODO: SoundCloud
     // TODO: YewTube (Youtube mature content that needs authentication)
 

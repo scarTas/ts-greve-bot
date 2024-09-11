@@ -1,7 +1,7 @@
 import { ISong } from "../../data/model/userModel";
 import { Readable } from 'stream';
 
-export enum SongType { YOUTUBE, YOUTUBE_MIX, SOUNDCLOUD, SPOTIFY }
+export enum SongType { YOUTUBE, YOUTUBE_PLAYLIST, YOUTUBE_MIX, SOUNDCLOUD, SPOTIFY }
 
 export abstract class ASong implements ISong {
 
@@ -24,10 +24,7 @@ export abstract class ASong implements ISong {
     lengthString?: string | undefined;
     begin?: number | undefined;
 
-    mixId?: string | undefined;
-    mixPlayedMap?: Set<string> | undefined;
-    mixQueue?: string[] | undefined;
-
     /** ==== ABSTRACT METHODS =============================================== */
-    abstract getStream(): Readable;
+    abstract getStream(): Readable | Promise<Readable>;
+    skip(): boolean | Promise<boolean> { return false; }
 }

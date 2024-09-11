@@ -3,16 +3,16 @@ import { Interaction, Message } from "discord.js";
 import { MusicPlayer } from "../../services/music/musicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const skipCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
+const skipMixCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "skips the current song in the queue, \
-    playing the next one (if any).",
-    aliases: ["skip", "s"], usage: "TODO",
+    category: "Music", description: "skips the current song or mix in the queue, \
+    playing the next song (if any).",
+    aliases: ["skipmix", "sm"], usage: "TODO",
     
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
-            await musicPlayer.skip();
+            await musicPlayer.skip(true);
         })
         .then(() => callback());
     },
@@ -31,4 +31,4 @@ const skipCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> =
 
     // TODO: slash command handler
 }
-export default skipCommandMetadata;
+export default skipMixCommandMetadata;

@@ -51,14 +51,15 @@ export abstract class MusicQueue {
 
     /* ==== METHODS ========================================================= */
     /** Add a new song to the queue. */
-    public async add(song: ASong): Promise<void> {
+    public async add(...songs: ASong[]): Promise<void> {
         ClassLogger.trace("Entering MusicQueue::add()");
 
-        this.queue.push(song);
+        const prevLen = this.queue.length;
+        this.queue.push(...songs);
 
         // If queue was empty, play new song
         // TODO: ok?
-        if(this.queue.length == 1) {
+        if(prevLen == 0) {
             await this.play();
         } else {
             await this.updateDynamicMessages();
@@ -70,19 +71,31 @@ export abstract class MusicQueue {
      *  "NONE": effectively removes and caches the current song (if any).
      *  "SONG": has no effect on queue - current song is played again.
      *  "ALL": puts current song at the top of the queue. */
-    public async skip(): Promise<void> {
+    public async skip(force: boolean = false): Promise<void> {
         ClassLogger.trace("Entering MusicPlayer::skip()");
 
-        if(this.loopPolicy === LoopPolicy.NONE) {
-            const song = this.queue.shift();
-            if(song) this.addToCache(song);
+        // Some "songs" are actually a collection of songs (undefined amount).
+        // In this case, do not handle a normal skip modifying the queue, but
+        // rather using the song skip method.
+        // The song skip method is expected to return false when the actual
+        // inner queue is exhausted.
+        // This is only used in Youtube mixes for now.
+        // The skipmix command bypasses this logic and forces a normal skip.
+        const keep: boolean = force || !!await this.getCurrent()?.skip?.();
+
+        // If skip has been forced or the song inner queue is empty, skip song
+        if(force || !keep) {
+            if(this.loopPolicy === LoopPolicy.NONE) {
+                const song = this.queue.shift();
+                if(song) this.addToCache(song);
+            }
+            
+            else if(this.loopPolicy === LoopPolicy.ALL) {
+                const song = this.queue.shift();
+                if(song) await this.add(song);
+            } 
+            // If LoopPolicy.SONG, queue is not to be modified, play current song
         }
-        
-        else if(this.loopPolicy === LoopPolicy.ALL) {
-            const song = this.queue.shift();
-            if(song) await this.add(song);
-        } 
-        // If LoopPolicy.SONG, queue is not to be modified, play current song
 
         // After updating queue, stop current song and play new one
         // TODO: ok?
