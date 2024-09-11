@@ -3,6 +3,7 @@ node_modules
 dist
 volumes
 coverage
+*.http
 
 # Sensitive data
 .env*
