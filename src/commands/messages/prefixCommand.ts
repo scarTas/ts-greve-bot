@@ -1,7 +1,7 @@
+import { Logger } from "../../classes/logging/Logger";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getUserPrefix, updateUserPrefix } from "../../services/mongoService";
-import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
+import { getUserPrefix, updateUserPrefix } from "../../classes/user/mongoService";
+import { CommandMetadata } from "../types";
 
 const regex: RegExp = /^\w{0,20}$/g;
 
@@ -18,14 +18,14 @@ const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix: string },
         if(!prefix?.length) {
             getUserPrefix(userId)
                 .then(p => callback({ content: `Current prefix is \`${p ?? process.env.PREFIX}\`.` }))
-                .catch( e => ClassLogger.error("Error retrieving user prefix", e) );
+                .catch( e => Logger.error("Error retrieving user prefix", e) );
         }
         
         // If the rpefix is valid, save it to database
         else if(regex.test(prefix)) {
             updateUserPrefix(userId, prefix)
                 .then(() => callback({ content: `Prefix set to \`${prefix}\`.` }))
-                .catch( e => ClassLogger.error("Error updating user prefix", e) );
+                .catch( e => Logger.error("Error updating user prefix", e) );
         }
         
         // If the provided prefix is invalid, return error message

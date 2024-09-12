@@ -1,12 +1,14 @@
-import { CommandMetadata } from "../../../types/types";
+import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { QueryMessage } from "../../../services/music/message/queryMessage";
+import { QueryMessage } from "../../../classes/music/message/queryMessage";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queryDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     // Command metadata for "help" command and general info about the command
     category: "Music", description: "Deletes the displayed query message",
     aliases: ["query-delete"],
+    // This command can only be called by activating queueMessage interaction.
+    hidden: false,
     
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
@@ -21,8 +23,5 @@ const queryDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     onButtonInteractionTransformer: (interaction, command) => {
         command({ i: interaction }, () => interaction.deferUpdate())
     }
-
-    //! onMessageCreateTransformer is not defined: this command can only be
-    //!     called by activating the queueMessage button interaction.
 }
 export default queryDeleteCommandMetadata;

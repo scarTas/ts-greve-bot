@@ -1,9 +1,9 @@
 import { AttachmentBuilder, User } from "discord.js";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import ClassLogger from "../../utils/logger";
-import { overlap } from "../../services/jimpService";
-import { getUserFromMessage } from "../../services/userService";
+import { overlap } from "../../classes/image/jimp";
+import { getUserFromMessage } from "../../classes/user/userService";
+import { Logger } from "../../classes/logging/Logger";
 
 export const fileRegex = /^https?:\/\/.*$/;
 const baseImage: string = "./assets/images/drip.png";
@@ -27,7 +27,7 @@ const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { fil
         // Add provided image to drip base image and invoke callback on success
         overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
             .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
-            .catch(e => ClassLogger.warn("Error overlapping images", e) );
+            .catch(e => Logger.warn("Error overlapping images", e) );
     },
 
     // Transformer that parses the text input before invoking the core command,

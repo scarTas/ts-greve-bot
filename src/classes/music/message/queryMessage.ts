@@ -1,10 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, MessagePayload, TextBasedChannel, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, TextBasedChannel, TextChannel } from "discord.js";
 import { DynamicMessage } from "./dynamicMessage";
-import { MusicPlayer } from "../musicPlayer";
-import { ASong } from "../song";
-import { YoutubeSong } from "../youtubeService";
-import ClassLogger from "../../../utils/logger";
+import { MusicPlayer } from "../MusicPlayer";
+import { ASong } from "../song/ASong";
+import { YoutubeSong } from "../../../services/music/youtubeService";
 import { sleep } from "../../../utils/sleep";
+import { Logger } from "../../logging/Logger";
 
 const RESULTS_PER_PAGE: number = 10;
 
@@ -25,7 +25,7 @@ export class QueryMessage extends DynamicMessage {
         //! "Loop" must use an async method - read RedditService for more info.
         while (QueryMessage.locks.has(groupId)) await sleep(0);
         QueryMessage.locks.add(groupId);
-        ClassLogger.debug(`${groupId} locked [${reason}]`);
+        Logger.debug(`${groupId} locked [${reason}]`);
     }
 
     /** To be used after finishing maniuplating the musicPlayer instance.
@@ -33,7 +33,7 @@ export class QueryMessage extends DynamicMessage {
     protected static unlock = function (groupId: string, reason?: string) {
         // Whatever happens, remove lock at all costs
         QueryMessage.locks.delete(groupId);
-        ClassLogger.debug(`${groupId} unlocked [${reason}]`);
+        Logger.debug(`${groupId} unlocked [${reason}]`);
     }
 
     /** Wraps callback execution in try-finally block with musicPlayer locks. */

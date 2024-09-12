@@ -1,5 +1,5 @@
-import ClassLogger from "../../utils/logger";
-import { ASong } from "./song";
+import { Logger } from "../logging/Logger";
+import { ASong } from "./song/ASong";
 
 /* ==== TYPE DEFINITION ===================================================== */
 export enum LoopPolicy { NONE, SONG, ALL }
@@ -52,7 +52,7 @@ export abstract class MusicQueue {
     /* ==== METHODS ========================================================= */
     /** Add a new song to the queue. */
     public async add(...songs: ASong[]): Promise<void> {
-        ClassLogger.trace("Entering MusicQueue::add()");
+        Logger.trace("Entering MusicQueue::add()");
 
         const prevLen = this.queue.length;
         this.queue.push(...songs);
@@ -72,7 +72,7 @@ export abstract class MusicQueue {
      *  "SONG": has no effect on queue - current song is played again.
      *  "ALL": puts current song at the top of the queue. */
     public async skip(force: boolean = false): Promise<void> {
-        ClassLogger.trace("Entering MusicPlayer::skip()");
+        Logger.trace("Entering MusicPlayer::skip()");
 
         // Some "songs" are actually a collection of songs (undefined amount).
         // In this case, do not handle a normal skip modifying the queue, but

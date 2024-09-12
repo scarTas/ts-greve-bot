@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 
 /** String tu be used to join the "clapped" elements. */
 const clap = ' :clap_tone5: ';

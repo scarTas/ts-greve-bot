@@ -1,5 +1,5 @@
 import { Message, User } from "discord.js";
-import ClassLogger from "../utils/logger";
+import { Logger } from "../logging/Logger";
 
 /** Retrieves a user instance for a user mentioned in the message or a user
  *  which name matches with the first command argument. */
@@ -15,5 +15,5 @@ export const getUserFromMessage = async (msg: Message, username: string): Promis
     // a query - if the user exists, return it
     return msg.guild?.members.fetch({ query: username, limit: 1 })
         .then(member => member.first()?.user)
-        .catch( e => { ClassLogger.error("Error retrieving user", e); return undefined; } );
+        .catch( e => { Logger.error("Error retrieving user", e); return undefined; } );
 }

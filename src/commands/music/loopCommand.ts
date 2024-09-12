@@ -1,7 +1,7 @@
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../services/music/musicPlayer";
-import { LoopPolicy } from "../../services/music/musicQueue";
+import { MusicPlayer } from "../../classes/music/MusicPlayer";
+import { LoopPolicy } from "../../classes/music/MusicQueue";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolicy?: LoopPolicy }, void> = {

@@ -1,6 +1,6 @@
 import HaramLeotta from "../..";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const pingCommandMetadata: CommandMetadata<null, { content: string }> = {

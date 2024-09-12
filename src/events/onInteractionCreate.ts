@@ -1,12 +1,12 @@
 import { Interaction } from "discord.js";
-import ClassLogger from "../utils/logger";
-import { CommandMetadata } from "../types/types";
-import { initializeContext, setCommandId } from "../utils/contextInitializer";
 import { commandMetadatas } from "./onMessageCreate";
+import { Context } from "../classes/logging/Context";
+import { CommandMetadata } from "../commands/types";
+import { Logger } from "../classes/logging/Logger";
 
 export default function (interaction: Interaction): void {
     // Before executing any logic, initialize context for verbose logging
-    initializeContext({ userId: interaction.user.username, serverId: interaction.guildId }, () => onInteractionCreate(interaction));
+    Context.initialize({ userId: interaction.user.username, serverId: interaction.guildId || undefined }, () => onInteractionCreate(interaction));
 }
 
 /** Handle newly created message and reply if a command is called. */
@@ -22,8 +22,8 @@ async function onInteractionCreate(interaction: Interaction): Promise<void> {
         // correctly prepare input parameters and handle callbacks
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onButtonInteractionTransformer) {
-            setCommandId(commandMetadata.aliases[0]);
-            ClassLogger.info(commandName);
+            Context.set("command-id", commandMetadata.aliases[0]);
+            Logger.info(commandName);
             return commandMetadata.onButtonInteractionTransformer(interaction, commandMetadata.command);
         } else {
             await interaction.deferUpdate();

@@ -1,16 +1,16 @@
 import { GuildMember, Interaction, Message, PermissionsBitField, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
-import { LoopPolicy, MusicQueue } from "./musicQueue";
+import { LoopPolicy, MusicQueue } from "./MusicQueue";
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, AudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
-import ClassLogger from "../../utils/logger";
 import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
-import { ASong } from "./song";
-import { YoutubePlaylistSong, YoutubeSong } from "./youtubeService";
+import { ASong } from "./song/ASong";
+import { YoutubeSong } from "../../services/music/youtubeService";
+import { getPlaylistSongs } from "../../services/music/youtubeServiceLegacy";
+import { SpotifySong } from "./song/spotify/SpotifySong";
+import { Logger } from "../logging/Logger";
 import { NowPlayingMessage } from "./message/nowPlayingMessage";
 import { QueueMessage } from "./message/queueMessage";
-import { getPlaylistSongs } from "./youtubeServiceLegacy";
-import { SpotifySong } from "./spotifyService";
-
+import { YoutubePlaylistSong } from "./song/youtube/YoutubePlaylistSong";
 
 export class MusicPlayer extends MusicQueue {
 
@@ -29,7 +29,7 @@ export class MusicPlayer extends MusicQueue {
         //! "Loop" must use an async method - read RedditService for more info.
         while (MusicPlayer.locks.has(groupId)) await sleep(0);
         MusicPlayer.locks.add(groupId);
-        ClassLogger.debug(`${groupId} locked [${reason}]`);
+        Logger.debug(`${groupId} locked [${reason}]`);
     }
 
     /** To be used after finishing maniuplating the musicPlayer instance.
@@ -37,7 +37,7 @@ export class MusicPlayer extends MusicQueue {
     protected static unlock = function (groupId: string, reason?: string) {
         // Whatever happens, remove lock at all costs
         MusicPlayer.locks.delete(groupId);
-        ClassLogger.debug(`${groupId} unlocked [${reason}]`);
+        Logger.debug(`${groupId} unlocked [${reason}]`);
     }
 
     /** Wraps callback execution in try-finally block with musicPlayer locks. */
@@ -168,7 +168,7 @@ export class MusicPlayer extends MusicQueue {
 
         // If errors occur during reproduction, skip broken resource
         this.player.on("error", (error: AudioPlayerError) => {
-            ClassLogger.error("Player error", error);
+            Logger.error("Player error", error);
             MusicPlayer.locking(this.groupId, async () => await this.skip(), "player error -> this.skip");
         });
 
@@ -177,7 +177,7 @@ export class MusicPlayer extends MusicQueue {
         // If the resource finished playing, skip to the next song.
         // If the resource has been manually stopped, do nothing.
         this.player.on("stateChange", (oldState: AudioPlayerState, newState: AudioPlayerState) => {
-            ClassLogger.trace(`Player stateChange: ${oldState.status} -> ${newState.status}`);
+            Logger.trace(`Player stateChange: ${oldState.status} -> ${newState.status}`);
 
             if (
                 oldState.status === AudioPlayerStatus.Playing
@@ -191,7 +191,7 @@ export class MusicPlayer extends MusicQueue {
         // If textChannel exists and the bot has the right permissions,
         // create dynamic message.
         if(textChannel) {
-            ClassLogger.debug("Valid textChannel");
+            Logger.debug("Valid textChannel");
             this.nowPlayingMessage = new NowPlayingMessage(textChannel);
             this.queueMessage = new QueueMessage(textChannel);
         }
@@ -241,7 +241,7 @@ export class MusicPlayer extends MusicQueue {
         });
 
         this.connection.on("stateChange", async (_, newState) => {
-            ClassLogger.trace("Connection state changed to " + newState.status);
+            Logger.trace("Connection state changed to " + newState.status);
 
             // Someone moved or disconnected the bot - destroy connection
             if (
@@ -251,7 +251,7 @@ export class MusicPlayer extends MusicQueue {
         });
 
         this.connection.on("error", e => {
-            ClassLogger.error("Connection error", e);
+            Logger.error("Connection error", e);
             // TODO: define error behaviour
             //this.disconnect();
             this.destroy();
@@ -265,7 +265,7 @@ export class MusicPlayer extends MusicQueue {
      *  the connection (if any). */
     public disconnect() {
         if (!this.connection) return;
-        ClassLogger.trace("Manually destroying connection");
+        Logger.trace("Manually destroying connection");
 
         // Destroy connection to prevent memory leaks
         if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) this.connection.destroy();
@@ -274,7 +274,7 @@ export class MusicPlayer extends MusicQueue {
 
     /** Returns true if the song is a valid resource and started playing. */
     public async play(): Promise<boolean> {
-        ClassLogger.trace("Entering MusicPlayer::play()");
+        Logger.trace("Entering MusicPlayer::play()");
 
         const song: ASong | undefined = super.getCurrent();
         if (!song) return false;
@@ -303,7 +303,7 @@ export class MusicPlayer extends MusicQueue {
     }
 
     public async stop() {
-        ClassLogger.trace("Entering MusicPlayer::stop()");
+        Logger.trace("Entering MusicPlayer::stop()");
 
         // Assert player is unpaused first
         //this.unpause();
@@ -377,12 +377,10 @@ export const getSong = async function (uri: string): Promise<ASong[] | undefined
     if (youtubePlaylistId) return await getPlaylistSongs(youtubePlaylistId);
 
     // Spotify URLs test
-    let spotifySongId: string | undefined = SpotifySong.getSongId(uri);
-    if(spotifySongId) return [await SpotifySong.getSongMetadata(spotifySongId)];
-    let spotifyAlbumId: string | undefined = SpotifySong.getAlbumId(uri);
-    if(spotifyAlbumId) return await SpotifySong.getAlbumMetadata(spotifyAlbumId);
-    let spotifyPlaylistId: string | undefined = SpotifySong.getPlaylistId(uri);
-    if(spotifyPlaylistId) return await SpotifySong.getPlaylistMetadata(spotifyPlaylistId);
+    let songs: ASong[] | undefined;
+    if(songs = await SpotifySong.fromSongUri(uri))      return songs;
+    if(songs = await SpotifySong.fromAlbumUri(uri))     return songs;
+    if(songs = await SpotifySong.fromPlaylistUri(uri))  return songs;
     
     // TODO: SoundCloud
     // TODO: YewTube (Youtube mature content that needs authentication)

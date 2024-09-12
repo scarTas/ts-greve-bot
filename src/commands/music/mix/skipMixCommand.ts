@@ -1,6 +1,6 @@
-import { CommandMetadata } from "../../types/types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../services/music/musicPlayer";
+import { MusicPlayer } from "../../../classes/music/MusicPlayer";
+import { CommandMetadata } from "../../types";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const skipMixCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {

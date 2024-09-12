@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 
 /** Coinflip possible outcomes - always 2 */
 const emojis: string[] = [":head_bandage:", ":cross:"];

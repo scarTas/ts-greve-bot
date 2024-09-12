@@ -1,6 +1,6 @@
 import HaramLeotta from "..";
+import { Logger } from "../classes/logging/Logger";
 import { connect } from "../data/mongoose";
-import ClassLogger from "../utils/logger";
 import { registerCommands } from "./onMessageCreate";
 
 
@@ -20,8 +20,8 @@ export const onReady = async () => {
     const guilds = HaramLeotta.get().guilds.cache;
 
     // Print guilds number and names
-    ClassLogger.info(`Currently in ${guilds.size} servers`);
-    //for(const [_, guild] of guilds) ClassLogger.trace(`- ${guild.name}`);
+    Logger.info(`Currently in ${guilds.size} servers`);
+    //for(const [_, guild] of guilds) Logger.trace(`- ${guild.name}`);
 
-    ClassLogger.info(`========= Deployment completed =========`);
+    Logger.info(`========= Deployment completed =========`);
 }

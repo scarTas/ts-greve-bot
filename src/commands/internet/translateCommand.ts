@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { isLanguageValid, translate } from "../../services/translateService";
-import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
+import { isLanguageValid, translate } from "../../classes/translate/GoogleTranslate";
+import { CommandMetadata } from "../types";
+import { Logger } from "../../classes/logging/Logger";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
@@ -17,7 +17,7 @@ const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: st
         // Search for the first article that matches the query and compose uri
         translate(query, toLanguage!, fromLanguage)
             ?.then(text => text && callback({ content: text }))
-            .catch(e => ClassLogger.error("Error during translation", e));
+            .catch(e => Logger.error("Error during translation", e));
     },
 
     // Transformer that parses the text input before invoking the core command,

@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getArticleUri, isLanguageValid, searchArticleTitles } from "../../services/wikiService";
-import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
+import { getArticleUri, isLanguageValid, searchArticleTitles } from "../../classes/wikipedia/Wikipedia";
+import { CommandMetadata } from "../types";
+import { Logger } from "../../classes/logging/Logger";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
@@ -16,7 +16,7 @@ const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string },
         searchArticleTitles(query, 5, language)
             .then(articles => getArticleUri(articles[0], language))
             .then(uri => callback({ content: uri }))
-            .catch(e => { ClassLogger.error("Error retrieving article", e); callback({ content: "??" }) });
+            .catch(e => { Logger.error("Error retrieving article", e); callback({ content: "??" }) });
     },
 
     // Transformer that parses the text input before invoking the core command,

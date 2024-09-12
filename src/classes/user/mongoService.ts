@@ -1,5 +1,6 @@
-import { UserModel, IUserModel } from "../data/model/userModel";
-import ClassLogger from "../utils/logger";
+import { Logger } from "../logging/Logger";
+import { IUserModel } from "../../data/interfaces/IUserModel";
+import { UserModel } from "../../data/model/UserModel";
 
 /** Retrieve user from database, if any. */
 function getUser(id: string): Promise<IUserModel | null> {
@@ -13,7 +14,7 @@ export async function getUserPrefix(id: string): Promise<string | undefined> {
         const user = await getUser(id);
         return user?.prefix;
     } catch (e) {
-        ClassLogger.error("Error during query", e as Error);
+        Logger.error("Error during query", e as Error);
     }
 }
 
@@ -26,8 +27,8 @@ export async function updateUserPrefix(id: string, prefix: string): Promise<void
         user.prefix = prefix;
         // Save model to database
         await user.save();
-        ClassLogger.debug("Prefix updated");
+        Logger.debug("Prefix updated");
     } catch(e) {
-        ClassLogger.error("Error during query", e as Error);
+        Logger.error("Error during query", e as Error);
     }
 }

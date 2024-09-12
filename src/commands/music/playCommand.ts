@@ -1,12 +1,9 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
-import { Message, TextChannel } from "discord.js";
-import { MusicPlayer, getSong } from "../../services/music/musicPlayer";
-import { ASong } from "../../services/music/song";
-import { YoutubeSong } from "../../services/music/youtubeService";
-import { QueryMessage } from "../../services/music/message/queryMessage";
-import { getYoutubeInitData } from "../../services/music/youtubeServiceLegacy";
+import { CommandMetadata } from "../types";
+import { Message } from "discord.js";
+import { MusicPlayer, getSong } from "../../classes/music/MusicPlayer";
+import { ASong } from "../../classes/music/song/ASong";
+import { QueryMessage } from "../../classes/music/message/queryMessage";
 
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;

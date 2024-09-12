@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 

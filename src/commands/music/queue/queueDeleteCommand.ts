@@ -1,6 +1,6 @@
-import { CommandMetadata } from "../../../types/types";
+import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../../services/music/musicPlayer";
+import { MusicPlayer } from "../../../classes/music/MusicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
@@ -8,6 +8,9 @@ const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     category: "Music", description: "Deletes the displayed queue message",
     aliases: ["queue-delete"],
     
+    // This command can only be called by activating queueMessage interaction.
+    hidden: false,
+
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
@@ -21,8 +24,5 @@ const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     onButtonInteractionTransformer: (interaction, command) => {
         command({ i: interaction }, () => interaction.deferUpdate())
     }
-
-    //! onMessageCreateTransformer is not defined: this command can only be
-    //!     called by activating the queueMessage button interaction.
 }
 export default queueDeleteCommandMetadata;

@@ -1,7 +1,6 @@
-import { CommandMetadata } from "../../../types/types";
+import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../../services/music/musicPlayer";
-import { QueryMessage } from "../../../services/music/message/queryMessage";
+import { QueryMessage } from "../../../classes/music/message/queryMessage";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queryPreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
@@ -9,6 +8,9 @@ const queryPreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }
     category: "Music", description: "When the query message is displayed, go to the previous page",
     aliases: ["query-previous"],
     
+    // This command can only be called by activating queueMessage interaction.
+    hidden: false,
+
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         QueryMessage.get(i, async (queryMessage: QueryMessage) => {
@@ -23,8 +25,5 @@ const queryPreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }
     onButtonInteractionTransformer: (interaction, command) => {
         command({ i: interaction }, () => interaction.deferUpdate())
     }
-
-    //! onMessageCreateTransformer is not defined: this command can only be
-    //!     called by activating the queueMessage button interaction.
 }
 export default queryPreviousCommandMetadata;

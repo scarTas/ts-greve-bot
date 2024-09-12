@@ -1,6 +1,6 @@
-import { CommandMetadata } from "../../../types/types";
+import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../../services/music/musicPlayer";
+import { MusicPlayer } from "../../../classes/music/MusicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queueFirstCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
@@ -8,6 +8,9 @@ const queueFirstCommandMetadata: CommandMetadata<{ i: Message | Interaction }, v
     category: "Music", description: "When the queue message is displayed, return to the first page",
     aliases: ["queue-first"],
     
+    // This command can only be called by activating queueMessage interaction.
+    hidden: false,
+
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
@@ -21,8 +24,5 @@ const queueFirstCommandMetadata: CommandMetadata<{ i: Message | Interaction }, v
     onButtonInteractionTransformer: (interaction, command) => {
         command({ i: interaction }, () => interaction.deferUpdate())
     }
-
-    //! onMessageCreateTransformer is not defined: this command can only be
-    //!     called by activating the queueMessage button interaction.
 }
 export default queueFirstCommandMetadata;

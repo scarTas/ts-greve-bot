@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 
 /** Collections of "sus" links that can be sent when the command is invoked. */
 const links: string[] = [

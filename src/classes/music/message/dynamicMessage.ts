@@ -1,5 +1,5 @@
-import { Message, MessageCreateOptions, MessageEditOptions, MessagePayload, TextBasedChannel } from "discord.js";
-import ClassLogger from "../../../utils/logger";
+import { Message, MessagePayload, TextBasedChannel } from "discord.js";
+import { Logger } from "../../logging/Logger";
 
 export class DynamicMessage {
     /** Text channel in which the message will be sent. */
@@ -23,7 +23,7 @@ export class DynamicMessage {
 
     /** Sends new message with current content. */
     async send() {
-        ClassLogger.trace("Entering DynamicMessage::send()");
+        Logger.trace("Entering DynamicMessage::send()");
 
         if(this.content) {
             this.message = await this.textChannel.send(this.content)
@@ -33,13 +33,13 @@ export class DynamicMessage {
 
     /** Deletes current message (if possible). */
     async delete(): Promise<void> {
-        ClassLogger.trace("Entering DynamicMessage::delete()");
+        Logger.trace("Entering DynamicMessage::delete()");
 
-        ClassLogger.trace(`Message: ${!!this.message} - Deletable: ${this.message?.deletable}`);
+        Logger.trace(`Message: ${!!this.message} - Deletable: ${this.message?.deletable}`);
 
         if(this.message?.deletable) {
             await this.message.delete()
-                .catch(e => ClassLogger.warn("delete(): ", e));
+                .catch(e => Logger.warn("delete(): ", e));
 
             // Remove message from memory, not useful anymore.
             // Also the "deletable" property is not updated; keeping the message
@@ -50,7 +50,7 @@ export class DynamicMessage {
 
     /** Deletes message (if possible) and sends new one with current content. */
     async resend() {
-        ClassLogger.trace("Entering DynamicMessage::resend()");
+        Logger.trace("Entering DynamicMessage::resend()");
 
         // If the last message in the channel is the current message, update without deleting
         let update: boolean = !!(
@@ -71,7 +71,7 @@ export class DynamicMessage {
     /** Updates current message (if possible) with current content.
      *  if not possible, the resend() method is called instead. */
     async update() {
-        ClassLogger.trace("Entering DynamicMessage::update()");
+        Logger.trace("Entering DynamicMessage::update()");
 
         if(this.content) {
             if(this.message?.editable) {
@@ -86,7 +86,7 @@ export class DynamicMessage {
     /** Updates the text channel to be used and
      *  resends the message (if any) on the new one.  */
     async updateChannel(textChannel: TextBasedChannel) {
-        ClassLogger.trace("Entering DynamicMessage::updateChannel()");
+        Logger.trace("Entering DynamicMessage::updateChannel()");
 
         if(this.textChannel.id !== textChannel.id) {
             this.textChannel = textChannel;

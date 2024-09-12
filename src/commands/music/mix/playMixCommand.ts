@@ -1,8 +1,9 @@
-import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { getSimpleMessageCallback } from "../../../events/onMessageCreate";
 import { Message } from "discord.js";
-import { MusicPlayer } from "../../services/music/musicPlayer";
-import { YoutubeMixSong, YoutubeSong } from "../../services/music/youtubeService";
+import { MusicPlayer } from "../../../classes/music/MusicPlayer";
+import { YoutubeSong } from "../../../services/music/youtubeService";
+import { CommandMetadata } from "../../types";
+import { YoutubeMixSong } from "../../../classes/music/song/youtube/YoutubeMixSong";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const playMixCommandMetadata: CommandMetadata<{ msg: Message, uri: string }, { content: string }> = {

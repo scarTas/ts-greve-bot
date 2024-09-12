@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { RedditPost, RedditSortBy, Subreddit } from '../types/types';
-import ClassLogger from '../utils/logger';
 import he from "he";
-import { sleep } from '../utils/sleep';
+import { sleep } from '../../utils/sleep';
+import { RedditPost, RedditSortBy, Subreddit } from './types';
+import { Logger } from '../logging/Logger';
 
 /* ==== PROPERTIES ========================================================== */
 /** Maximum number of reddit subreddits that can be saved in cache.
@@ -46,7 +46,7 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
     //! Node is single-threaded.
     while(locks.has(groupId)) await sleep(0);
     locks.add(groupId);
-    ClassLogger.trace(groupId + " locked");
+    Logger.trace(groupId + " locked");
 
     try {
         // Retrieve cached channel - If there is no entry, create it.
@@ -63,9 +63,9 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
         // If there is no entry or the cached subreddits queue is empty,
         // fetch new posts for subreddit and sortBy config.
         if (!sub || !sub.posts.length) {
-            ClassLogger.debug("Cache missed, retrieving new posts");
+            Logger.debug("Cache missed, retrieving new posts");
             sub = await getPosts(subredditName, sortby, sub?.after)
-                .catch( e => ClassLogger.error("Error retrieving posts", e));
+                .catch( e => Logger.error("Error retrieving posts", e));
             // If the requested sub is invalid, do nothing
             if(!sub) return;
             subredditMap.set(subredditKey, sub);
@@ -92,7 +92,7 @@ export async function retrieveLatestPost(groupId: string, subredditName: string,
     } finally {
         // Whatever happens, remove lock at all costs
         locks.delete(groupId);
-        ClassLogger.trace(groupId + " unlocked");
+        Logger.trace(groupId + " unlocked");
     }
 }
 
@@ -173,9 +173,9 @@ function parsePostData(data: any): RedditPost {
 }
 
 /** Retrieves specific post data by id and returns its RedditPost object. */
-export function getPost(id: string): Promise<RedditPost> {
+export async function getPost(id: string): Promise<RedditPost> {
     const headers = { "user-agent": "*" };
     // Given the id fetch the post
-    return axios.get(`https://www.reddit.com/by_id/${id}.json`, { headers })
-        .then(r => parsePostData(r.data.data.children[0].data));
+    const r = await axios.get(`https://www.reddit.com/by_id/${id}.json`, { headers });
+    return parsePostData(r.data.data.children[0].data);
 }

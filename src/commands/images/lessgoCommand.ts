@@ -1,10 +1,10 @@
 import { AttachmentBuilder, User } from "discord.js";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import ClassLogger from "../../utils/logger";
-import { overlap } from "../../services/jimpService";
+import { overlap } from "../../classes/image/jimp";
 import { fileRegex } from "./dripCommand";
-import { getUserFromMessage } from "../../services/userService";
+import { getUserFromMessage } from "../../classes/user/userService";
+import { Logger } from "../../classes/logging/Logger";
 
 const baseImage: string = "./assets/images/lessgo.png";
 
@@ -30,7 +30,7 @@ const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { f
             { path, xPos: 330, yPos: 75, xRes: 50, yRes: 50, round: true }
         ])
             .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
-            .catch(e => ClassLogger.warn("Error overlapping images", e) );
+            .catch(e => Logger.warn("Error overlapping images", e) );
     },
 
     // Transformer that parses the text input before invoking the core command,

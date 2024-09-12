@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { DynamicMessage } from "./dynamicMessage";
-import { MusicPlayer } from "../musicPlayer";
+import { DynamicMessage } from "../../../classes/music/message/dynamicMessage";
+import { MusicPlayer } from "../MusicPlayer";
 import { secondsToString } from "../../../utils/length";
 import { ASong } from "../song";
 

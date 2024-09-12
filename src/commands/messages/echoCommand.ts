@@ -1,5 +1,5 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
+import { CommandMetadata } from "../types";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const echoCommandMetadata: CommandMetadata<{ content: string }, { content: string }> = {

@@ -1,20 +1,20 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
-import ClassLogger from "../utils/logger";
-import { CommandMetadata } from "../types/types";
-import { initializeContext, setCommandId } from "../utils/contextInitializer";
-import { getUserPrefix } from "../services/mongoService";
+import { getUserPrefix } from "../classes/user/mongoService";
 import { readdir } from 'fs/promises';
 import * as path from 'path';
-import { QueryMessage } from "../services/music/message/queryMessage";
-import { ASong, SongType } from "../services/music/song";
-import { MusicPlayer } from "../services/music/musicPlayer";
+import { QueryMessage } from "../classes/music/message/queryMessage";
+import { ASong, SongType } from "../classes/music/song/ASong";
+import { MusicPlayer } from "../classes/music/MusicPlayer";
 import { getPlaylistSongs } from "../services/music/youtubeServiceLegacy";
+import { Context } from "../classes/logging/Context";
+import { CommandMetadata } from "../commands/types";
+import { Logger } from "../classes/logging/Logger";
 
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
 export default function (msg: Message): void {
     // Before executing any logic, initialize context for verbose logging
-    initializeContext({ userId: msg.author.username, serverId: msg.guildId }, () => onMessageCreate(msg));
+    Context.initialize({ userId: msg.author.username, serverId: msg.guildId || undefined }, () => onMessageCreate(msg));
 }
 
 /** Handle newly created message and reply if a command is called. */
@@ -24,7 +24,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
 
     // TODO: handle youtube selection
     // Check if the user is choosing a track from the YoutubeNavigator
-    //if(checkYoutube(msg)?.catch(e => ClassLogger.error("YoutubeNavigator selection error", e))) return;   
+    //if(checkYoutube(msg)?.catch(e => Logger.error("YoutubeNavigator selection error", e))) return;   
 
     // Normalize message content
     const lowerCaseContent: string = msg.content.toLowerCase();
@@ -41,7 +41,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
                 let songs: ASong[];
                 if(song.type === SongType.YOUTUBE_PLAYLIST) {
                     // URI is actually the playlist ID, not the URI
-                    songs = await getPlaylistSongs(song.uri);
+                    songs = await getPlaylistSongs(song.id);
                     songs.forEach(s => s.requestor = requestor)
                 } else {
                     song.requestor = requestor;
@@ -97,8 +97,8 @@ async function onMessageCreate(msg: Message): Promise<void> {
         // correctly prepare input parameters and handle callbacks
         const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
-            setCommandId(commandMetadata.aliases[0]);
-            ClassLogger.info(msg.content);
+            Context.set("command-id", commandMetadata.aliases[0]);
+            Logger.info(msg.content);
             return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
         }
         
@@ -147,7 +147,7 @@ function getInsult(content: string): string | undefined {
  *  method scope creating the function when needed. */
 export function getSimpleMessageCallback(msg: Message): (reply: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[] }) => void {
     return function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-        msg.reply(reply).catch(e => ClassLogger.error("Message reply error: " + e));
+        msg.reply(reply).catch(e => Logger.error("Message reply error: " + e));
     }
 }
 
@@ -180,36 +180,13 @@ export async function registerCommands() {
     const defaultExportsArray: CommandMetadata<any, any>[] = await loadDefaultExports(directoryPath);
   
     for(const commandMetadata of defaultExportsArray) {
-      //ClassLogger.trace(`Registering command '${commandMetadata.aliases[0]}'`);
-      for(const alias of commandMetadata.aliases) {
-          commandMetadatas[alias] = commandMetadata;
-      }
+        // Ignore non-command files
+        if(!commandMetadata?.aliases) continue;
+
+        for(const alias of commandMetadata.aliases) {
+            commandMetadatas[alias] = commandMetadata;
+        }
     }
 
-    ClassLogger.debug("All commands registered");
+    Logger.debug("All commands registered");
 }
-
-    /*
-    translate: { category: "Internet", description: "Translates some text in another language.", aliases: ["tl" },
-    giggino: { category: "Internet", description: "Translates some text in napoletano.  },
-    reddit: { category: "Internet", description :"Sends a post in hot from a given subreddit, if exists.", aliases: ["r", "r/" },
-
-    play: { category: "Music", description: "Plays a song in your voice channel, loading the url or searching on YouTube.", aliases: ["p" },
-    playmix: { category: "Music", description: "Plays a mix from a Youtube video url.", aliases: ["p" },
-    skip: { category: "Music", description: "Skips the currently playing song.", aliases: ["s" },
-    skipmix: { category: "Music", description: "Skips the currently playing mix.", aliases: ["sm" },
-    back: { category: "Music", description: "Goes back to the recently played songs.", aliases: ["b" },
-    remove: { category: "Music", description: "Removes songs from a particular index.", aliases: ["rm" },
-    pause: { category: "Music", description: "Pauses the currently playing song.", aliases: ["ps" },
-    resume: { category: "Music", description: "Resumes the currently paused song.", aliases: ["rs" },
-    clear: { category: "Music", description: "Cleares the music queue and kicks the bot from the voice channel.  },
-    leave: { category: "Music", description: "Kicks the bot out from the voice channel, but doesn't clear the current queue and other informations.", aliases: ["l" },
-    join: { category: "Music", description: "The bot will join your voice channel. If there's something in the queue, it will play.", aliases: ["j" },
-    loop: { category: "Music", description: "Changes the state of the loop of the music queue netween none, loop-song and loop-queue.", aliases: ["lp" },
-    shuffle: { category: "Music", description: "Shuffles the songs in the queue.", aliases: ["sh" },
-    bind: { category: "Music", description: "Binds the music bot to the current channel.  },
-    nowplaying: { category: "Music", description: "Shows informations about the current song.", aliases: ["np" },
-    queue: { category: "Music", description: "Shows informations about all the songs in the current queue.", aliases: ["q" },
-    volume: { category: "Music", description: "Changes the volume of the music. Default: 1.", aliases: ["v" },
-    favourites: { category: "Music", description: "Allows operations concerning the favourite music playlist, such as add songs or show the list.", aliases: ["f", "favs"] }
-    */

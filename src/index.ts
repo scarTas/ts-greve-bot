@@ -1,5 +1,5 @@
 import { GatewayIntentBits, Options, Client, ActivityType, CacheFactory, ColorResolvable } from 'discord.js';
-import ClassLogger from "./utils/logger";
+import { Logger } from "./classes/logging/Logger";
 import { onReady } from './events/onReady';
 import onMessageCreate from './events/onMessageCreate';
 import onInteractionCreate from './events/onInteractionCreate';
@@ -75,22 +75,22 @@ export default class HaramLeotta extends Client {
 
     /** Define bot startup behaviour - login and start listening to events. */
     public init = () => {
-        ClassLogger.info(`Deployment started on env [${process.env.NODE_ENV}] and version [${this.version}]`);
+        Logger.info(`Deployment started on env [${process.env.NODE_ENV}] and version [${this.version}]`);
 
         // Bot login
         this.login(process.env.TOKEN);
 
         // On bot login event, execute only once     
         this.once("ready", onReady);
-        ClassLogger.info("Listening on event 'ready'");
+        Logger.info("Listening on event 'ready'");
 
         // On message created (sent), execute every time  
         this.on("messageCreate", onMessageCreate);
-        ClassLogger.info("Listening on event 'messageCreate'");
+        Logger.info("Listening on event 'messageCreate'");
 
         // On message created (sent), execute every time  
         this.on("interactionCreate", onInteractionCreate);
-        ClassLogger.info("Listening on event 'interactionCreate'");
+        Logger.info("Listening on event 'interactionCreate'");
     }
 
     /** Update bot custom activity and yellow status (presence) on startup */
@@ -111,5 +111,5 @@ HaramLeotta.get().init();
 
 /*
 process.on("unhandledRejection", e => {
-	ClassLogger.error(`Unhandled promise rejection: ${e}`);
+	Logger.error(`Unhandled promise rejection: ${e}`);
 })*/

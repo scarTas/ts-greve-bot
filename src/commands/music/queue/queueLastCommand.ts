@@ -1,6 +1,6 @@
-import { CommandMetadata } from "../../../types/types";
+import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../../services/music/musicPlayer";
+import { MusicPlayer } from "../../../classes/music/MusicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queueLastCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
@@ -8,6 +8,9 @@ const queueLastCommandMetadata: CommandMetadata<{ i: Message | Interaction }, vo
     category: "Music", description: "When the queue message is displayed, go to the last page",
     aliases: ["queue-last"],
     
+    // This command can only be called by activating queueMessage interaction.
+    hidden: false,
+
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
         MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
@@ -21,8 +24,5 @@ const queueLastCommandMetadata: CommandMetadata<{ i: Message | Interaction }, vo
     onButtonInteractionTransformer: (interaction, command) => {
         command({ i: interaction }, () => interaction.deferUpdate())
     }
-
-    //! onMessageCreateTransformer is not defined: this command can only be
-    //!     called by activating the queueMessage button interaction.
 }
 export default queueLastCommandMetadata;

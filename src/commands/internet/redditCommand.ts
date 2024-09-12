@@ -1,8 +1,9 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
-import { CommandMetadata, RedditSortBy } from "../../types/types";
-import ClassLogger from "../../utils/logger";
-import { isSortbyValid, retrieveLatestPost } from "../../services/redditService";
+import { CommandMetadata } from "../types";
+import { isSortbyValid, retrieveLatestPost } from "../../classes/reddit/Reddit";
 import HaramLeotta from "../..";
+import { Logger } from "../../classes/logging/Logger";
+import { RedditSortBy } from "../../classes/reddit/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
@@ -115,7 +116,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
                         }
                 }
             })
-            .catch(e => ClassLogger.error("Error parsing post", e));
+            .catch(e => Logger.error("Error parsing post", e));
     },
 
     // Transformer that parses the text input before invoking the core command,
@@ -136,7 +137,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
         // If there are arguments left, join the sentence and call che command
         command({ groupId: msg.channel.id, subreddit, sortby, nsfw: (msg.channel as TextChannel)?.nsfw },
             function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-                msg.channel.send(reply).catch(e => ClassLogger.error("Message reply error", e));
+                msg.channel.send(reply).catch(e => Logger.error("Message reply error", e));
             }
         )
     }

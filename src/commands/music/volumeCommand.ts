@@ -1,8 +1,8 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { CommandMetadata } from "../../types/types";
-import ClassLogger from "../../utils/logger";
+import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
-import { MusicPlayer } from "../../services/music/musicPlayer";
+import { MusicPlayer } from "../../classes/music/MusicPlayer";
+import { Logger } from "../../classes/logging/Logger";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, { content: string }> = {
@@ -26,7 +26,7 @@ const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, {
         if(!volume) return;
         volume = parseFloat(volume.replace(',', '.'));
         if(isNaN(volume) || volume < 0) return;
-        ClassLogger.debug("New volume: "+volume);
+        Logger.debug("New volume: "+volume);
 
         command({ msg, volume }, getSimpleMessageCallback(msg))
     }

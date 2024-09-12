@@ -15,10 +15,11 @@ export type CoreCommand<I, O> = (
 export type OnMessageCreateTransformer<I, O> = (msg: Message, content: string, args: string[], command: CoreCommand<I, O>) => void
 
 // TODO
-export type OnSlashCommandTransformer<I, O> = (interaction: CommandInteraction, command: CoreCommand<I, O>) => void
+export type OnButtonInteractionTransformer<I, O> = (interaction: ButtonInteraction, command: CoreCommand<I, O>) => void
 
 // TODO
-export type OnButtonInteractionTransformer<I, O> = (interaction: ButtonInteraction, command: CoreCommand<I, O>) => void
+export type OnSlashCommandTransformer<I, O> = (interaction: CommandInteraction, command: CoreCommand<I, O>) => void
+
 
 /** Define metadata object value definition.
  *  Command metadata are mainly used for the "help" command. */
@@ -27,36 +28,9 @@ export type CommandMetadata<I, O>  = {
     category: "Information" | "Messages" | "Images" | "Internet" | "Music",
     aliases: string[],
     usage?: string,
+    hidden?: boolean,
     command: CoreCommand<I, O>,
     onMessageCreateTransformer?: OnMessageCreateTransformer<I, O>,
     onSlashCommandTransformer?: OnSlashCommandTransformer<I, O>,
     onButtonInteractionTransformer?: OnButtonInteractionTransformer<I, O>
 }
-
-/* ==== REDDIT ============================================================== */
-export interface RedditPost {
-    upvotes: number;
-    comments: number;
-    nsfw: boolean;
-
-    title: string;
-    subreddit_name_prefixed: string;
-    permalink: string;
-    url_overridden_by_dest: string;
-    url: string;
-    selftext: string;
-
-    post_hint: string | undefined;
-    media: any;
-    media_metadata: any;
-    gallery_data: any;
-    crosspost_parent: any;
-};
-
-export interface Subreddit {
-    posts: RedditPost[];
-    after: string | undefined;
-    lastSearch: number;
-};
-
-export type RedditSortBy = "hot" | "new" | "top";
