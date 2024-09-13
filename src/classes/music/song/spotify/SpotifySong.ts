@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ASong, SongType } from "../ASong";
-import { YoutubeSong } from "../../../../services/music/youtubeService";
+import { YoutubeSong } from "../youtube/YoutubeSong";
 import { Readable } from 'stream';
 import { Logger } from "../../../logging/Logger";
 

@@ -1,4 +1,4 @@
-import { EmbedBuilder, TextChannel } from "discord.js";
+import { BaseChannel, DMChannel, EmbedBuilder, TextChannel, TextBasedChannelFields, PartialGroupDMChannel } from "discord.js";
 import { CommandMetadata } from "../types";
 import { isSortbyValid, retrieveLatestPost } from "../../classes/reddit/Reddit";
 import HaramLeotta from "../..";
@@ -6,7 +6,7 @@ import { Logger } from "../../classes/logging/Logger";
 import { RedditSortBy } from "../../classes/reddit/types";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
+const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw?: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
     // Command metadata for "help" command and general info about the command
     category: "Internet", description: "Retrieves a post from the specified subreddit, if exists.",
     aliases: ["reddit", "r/", "r"], usage: "`ham reddit memes` // Retrieves a post from the `meme` community, sorting by 'hot'\
@@ -122,6 +122,11 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
     onMessageCreateTransformer: (msg, _content, args, command) => {
+        // PartialGroupDMChannel (whatever that is) doesn't support sending
+        // messages, so if the message has been sent there, ignore the command.
+        const channel = msg.channel;
+        if (!channel || channel instanceof PartialGroupDMChannel ) return;
+
         // Retrieve subreddit name
         const subreddit: string | undefined = args.shift();
         let sortby: RedditSortBy | undefined = undefined;
@@ -135,9 +140,9 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
         }
 
         // If there are arguments left, join the sentence and call che command
-        command({ groupId: msg.channel.id, subreddit, sortby, nsfw: (msg.channel as TextChannel)?.nsfw },
+        command({ groupId: channel.id, subreddit, sortby, nsfw: (channel as TextChannel).nsfw },
             function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-                msg.channel.send(reply).catch(e => Logger.error("Message reply error", e));
+                channel.send(reply).catch((e: Error) => Logger.error("Message reply error", e));
             }
         )
     }

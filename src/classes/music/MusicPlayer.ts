@@ -4,8 +4,7 @@ import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, Aud
 import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
 import { ASong } from "./song/ASong";
-import { YoutubeSong } from "../../services/music/youtubeService";
-import { getPlaylistSongs } from "../../services/music/youtubeServiceLegacy";
+import { YoutubeSong } from "./song/youtube/YoutubeSong";
 import { SpotifySong } from "./song/spotify/SpotifySong";
 import { Logger } from "../logging/Logger";
 import { NowPlayingMessage } from "./message/nowPlayingMessage";
@@ -143,7 +142,7 @@ export class MusicPlayer extends MusicQueue {
     /* ==== CONSTRUCTOR ===================================================== */
     /** MusicPlayer instances can only be created from the get() method in case
      *  the provided groupId is not present in the musicPlayer list. */
-    protected constructor(groupId: string, voiceChannel: VoiceBasedChannel, textChannel?: TextBasedChannel) {
+    protected constructor(groupId: string, voiceChannel: VoiceBasedChannel, textChannel?: TextChannel) {
         super(5, LoopPolicy.NONE);
         this.voiceChannel = voiceChannel;
         this.groupId = groupId;
@@ -373,11 +372,10 @@ export const getSong = async function (uri: string): Promise<ASong[] | undefined
     // Youtube URLs test
     let youtubeVideoId: string | undefined = YoutubeSong.getVideoId(uri);
     if (youtubeVideoId) return [await YoutubeSong.getVideoInfo(youtubeVideoId)];
-    let youtubePlaylistId: string | undefined = YoutubePlaylistSong.getPlaylistId(uri);
-    if (youtubePlaylistId) return await getPlaylistSongs(youtubePlaylistId);
 
     // Spotify URLs test
     let songs: ASong[] | undefined;
+    if(songs = await YoutubePlaylistSong.fromUri(uri))  return songs;
     if(songs = await SpotifySong.fromSongUri(uri))      return songs;
     if(songs = await SpotifySong.fromAlbumUri(uri))     return songs;
     if(songs = await SpotifySong.fromPlaylistUri(uri))  return songs;

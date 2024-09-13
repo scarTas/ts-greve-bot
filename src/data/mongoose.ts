@@ -2,7 +2,9 @@ import mongoose, { ConnectOptions } from "mongoose";    // MongoDB Database conn
 import { Logger } from "../classes/logging/Logger";
 
 /** Mongoose connection uri - from env */
-const uri: string = process.env.MONGO_URI!;
+const host: string = process.env.MONGO_HOST!;
+const port: string = process.env.MONGO_PORT!;
+const database: string = process.env.MONGO_DB!;
 
 /** Mongoose connection options */
 const options: ConnectOptions = {
@@ -15,6 +17,7 @@ mongoose.set("strictQuery", true);
 
 // Connect to MongoDB using Mongoose
 export function connect(): Promise<void> {
+    const uri = `mongodb://${host}:${port}/${database}`;
     return mongoose.connect(uri, options)
         .then(() => Logger.info(`Successfully connected to '${uri}'`))
         .catch((e) => Logger.error(`Error connecting to '${uri}': ${e}`));

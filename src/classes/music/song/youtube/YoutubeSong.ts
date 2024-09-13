@@ -1,16 +1,31 @@
 import ytdl from "@distube/ytdl-core";
 //import ytdl from "ytdl-core";
-import { secondsToString, stringToSeconds } from "../../utils/length";
-import { ASong, SongType } from "../../classes/music/song/ASong";
+import { secondsToString, stringToSeconds } from "../../../../utils/length";
+import { ASong, SongType } from "../ASong";
 import { Readable } from 'stream';
-import { Logger } from "../../classes/logging/Logger";
-import { YoutubeMixSong } from "../../classes/music/song/youtube/YoutubeMixSong";
-import { YoutubePlaylistSong } from "../../classes/music/song/youtube/YoutubePlaylistSong";
+import { Logger } from "../../../logging/Logger";
+import { YoutubePlaylistSong } from "./YoutubePlaylistSong";
 const YouTubeSearchApi = require("youtube-search-api");
 
 export class YoutubeSong extends ASong {
 
-    /** ==== STATIC METHODS ================================================= */
+    /** ==== CONSTRUCTOR ==================================================== */
+    public constructor(title: string, id: string, lengthSeconds: number, lengthString: string, thumbnail?: string) {
+        super(SongType.YOUTUBE, id, title, `https://www.youtube.com/watch?v=${id}`);
+        this.thumbnail = thumbnail;
+        this.lengthSeconds = lengthSeconds;
+        this.lengthString = lengthString;
+    }
+
+    /** ==== METHODS ======================================================== */
+    getStream(): Readable {
+        return ytdl(this.uri!, {
+            begin: 0, agent: ytdl.createAgent(),
+            filter: "audioonly", quality: "highestaudio", highWaterMark: 1048576 * 32
+        });
+    }
+    
+    /** ==== STATIC PROPERTIES ============================================== */
     /** Regex that matches video ids in a Youtube video URIs - here's some insights
      *  Ignore initial http(s), since the url might have another encoded youtube url
      *  (ex: http://www.youtube.com/oembed?url=http%3A//www.youtube.com/watch?v%3D-wtIMTCHWuI&format=json)
@@ -27,6 +42,7 @@ export class YoutubeSong extends ASong {
     //public static regex: RegExp = /(?:(?:www|m)\.)?youtu(?:\.be|be(?:-nocookie)?\.com)\/(?:(?:(?:watch|vi?|e(?:mbed)?|shorts|live|user.*[0-9])\/)|.*vi?(?:%3D|=))?([a-zA-Z0-9_-]{11})/gm;
     //public static regex: RegExp = /(?:youtu\.be\/|youtube\.com(?:\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/|embed\/|v\/|m\/|watch\?(?:[^=]+=[^&]+&)*?v=))([^"&?\/\s]{11})/gm;
 
+    /** ==== STATIC METHODS ================================================= */
     /** Validates a Youtube URI, returning the video id if the URI is valid. */
     public static getVideoId = function(url: string): undefined | string {
         const result = YoutubeSong.regex.exec(url);
@@ -35,8 +51,6 @@ export class YoutubeSong extends ASong {
 
     /** Retrieves metadata from a valid Youtube video url. */
     public static getVideoInfo = async function(id: string): Promise<YoutubeSong> {
-        YoutubeMixSong.getYoutubeMixIds(id);
-
         // Normalize URI after extracting video ID
         const uri = `https://www.youtube.com/watch?v=${id}`;
         const info = await ytdl.getBasicInfo(uri);
@@ -77,24 +91,6 @@ export class YoutubeSong extends ASong {
 
         // Return parsed items and nextPage token
         return { items: items, nextPage };
-    }
-
-
-
-    /** ==== CONSTRUCTOR ==================================================== */
-    public constructor(title: string, id: string, lengthSeconds: number, lengthString: string, thumbnail?: string) {
-        super(SongType.YOUTUBE, id, title, `https://www.youtube.com/watch?v=${id}`);
-        this.thumbnail = thumbnail;
-        this.lengthSeconds = lengthSeconds;
-        this.lengthString = lengthString;
-    }
-
-    /** ==== METHODS ======================================================== */
-    getStream(): Readable {
-        return ytdl(this.uri!, {
-            begin: 0, agent: ytdl.createAgent(),
-            filter: "audioonly", quality: "highestaudio", highWaterMark: 1048576 * 32
-        });
     }
 }
 

@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, Tex
 import { DynamicMessage } from "./dynamicMessage";
 import { MusicPlayer } from "../MusicPlayer";
 import { ASong } from "../song/ASong";
-import { YoutubeSong } from "../../../services/music/youtubeService";
+import { YoutubeSong } from "../song/youtube/YoutubeSong";
 import { sleep } from "../../../utils/sleep";
 import { Logger } from "../../logging/Logger";
 
@@ -80,7 +80,7 @@ export class QueryMessage extends DynamicMessage {
     }
 
     /* ==== CONSTRUCTOR ===================================================== */
-    constructor(textChannel: TextBasedChannel, groupId: string, query: string) {
+    constructor(textChannel: TextChannel, groupId: string, query: string) {
         super(textChannel);
         this.groupId = groupId;
         this.query = query;

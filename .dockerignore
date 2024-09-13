@@ -1,6 +1,8 @@
 # Bloat
 **/node_modules
 **/dist
+README.md
+LICENSE
 
 # Local deploy files
 Makefile

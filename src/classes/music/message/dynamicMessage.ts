@@ -1,16 +1,16 @@
-import { Message, MessagePayload, TextBasedChannel } from "discord.js";
+import { Message, MessagePayload, TextChannel } from "discord.js";
 import { Logger } from "../../logging/Logger";
 
 export class DynamicMessage {
     /** Text channel in which the message will be sent. */
-    textChannel: TextBasedChannel;
+    textChannel: TextChannel;
     /** Sent message to be deleted or updated. */
     message?: Message;
     /** Content of the message. */
     content?: string | MessagePayload; // | MessageCreateOptions | MessageEditOptions;
 
     /* ==== CONSTRUCTOR ===================================================== */
-    constructor(textChannel: TextBasedChannel){
+    constructor(textChannel: TextChannel){
         this.textChannel = textChannel;
     }
 
@@ -85,7 +85,7 @@ export class DynamicMessage {
 
     /** Updates the text channel to be used and
      *  resends the message (if any) on the new one.  */
-    async updateChannel(textChannel: TextBasedChannel) {
+    async updateChannel(textChannel: TextChannel) {
         Logger.trace("Entering DynamicMessage::updateChannel()");
 
         if(this.textChannel.id !== textChannel.id) {

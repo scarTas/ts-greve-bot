@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../../events/onMessageCreate";
 import { Message } from "discord.js";
 import { MusicPlayer } from "../../../classes/music/MusicPlayer";
-import { YoutubeSong } from "../../../services/music/youtubeService";
+import { YoutubeSong } from "../../../classes/music/song/youtube/YoutubeSong";
 import { CommandMetadata } from "../../types";
 import { YoutubeMixSong } from "../../../classes/music/song/youtube/YoutubeMixSong";
 
@@ -19,7 +19,7 @@ const playMixCommandMetadata: CommandMetadata<{ msg: Message, uri: string }, { c
         const videoId = YoutubeSong.getVideoId(uri);
 
         if(videoId) {
-            const song: YoutubeMixSong = await YoutubeMixSong.getYoutubeMixIds(videoId);
+            const song: YoutubeMixSong = await YoutubeMixSong.fromId(videoId);
             song.requestor = msg.member?.id;
 
             // If the mix is valid, add to MusicPlayer queue and play

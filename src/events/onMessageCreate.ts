@@ -5,10 +5,10 @@ import * as path from 'path';
 import { QueryMessage } from "../classes/music/message/queryMessage";
 import { ASong, SongType } from "../classes/music/song/ASong";
 import { MusicPlayer } from "../classes/music/MusicPlayer";
-import { getPlaylistSongs } from "../services/music/youtubeServiceLegacy";
 import { Context } from "../classes/logging/Context";
 import { CommandMetadata } from "../commands/types";
 import { Logger } from "../classes/logging/Logger";
+import { YoutubePlaylistSong } from "../classes/music/song/youtube/YoutubePlaylistSong";
 
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
@@ -41,7 +41,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
                 let songs: ASong[];
                 if(song.type === SongType.YOUTUBE_PLAYLIST) {
                     // URI is actually the playlist ID, not the URI
-                    songs = await getPlaylistSongs(song.id);
+                    songs = await YoutubePlaylistSong.getSongs(song.id);
                     songs.forEach(s => s.requestor = requestor)
                 } else {
                     song.requestor = requestor;
@@ -165,7 +165,7 @@ async function loadDefaultExports(dir: string): Promise<any[]> {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       return loadDefaultExports(fullPath);
-    } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+    } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.js'))) {
       const module = await import(fullPath);
       return module.default;
     }

@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { DynamicMessage } from "../../../classes/music/message/dynamicMessage";
 import { MusicPlayer } from "../MusicPlayer";
 import { secondsToString } from "../../../utils/length";
-import { ASong } from "../song";
+import { ASong } from "../song/ASong";
 
 const RESULTS_PER_PAGE: number = 10;
 

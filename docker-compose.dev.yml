@@ -58,20 +58,22 @@ services:
       MONGO_DB: ${MONGO_DB}
       MONGO_HOST: haram-leotta-mongo
       MONGO_PORT: 27017
-      # DiscordJS configuration
+      # Node & Discord configuration
+      NODE_ENV: dev
+      LOG_LEVEL: ${LOG_LEVEL}
+      VERSION: ${VERSION}
       TOKEN: ${TOKEN}
       PREFIX: ${PREFIX}
-      # Node configuration
-      NODE_ENV: dev
-      VERSION: ${VERSION}
-      LOG_LEVEL: ${LOG_LEVEL}
+      EMBED_COLOR: 0xad1457
+      MUSIC_MAX_HISTORY: 5
+      REDDIT_MAX_SUBS: 5
 
     # Build image from Dockerfile in the current directory and override its CMD.
     build: .
     command: npm run start
     image: haram-leotta-node:latest
 
-    # Spring depends on postgres and mongo; ensure they start before spring.
+    # Node depends on mongo; ensure it starts before Node.
     depends_on:
       - haram-leotta-mongo
 
