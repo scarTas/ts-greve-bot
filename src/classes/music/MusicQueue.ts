@@ -1,13 +1,11 @@
-import { Logger } from "../logging/Logger";
-import { ASong } from "./song/ASong";
+import Logger from "../logging/Logger";
+import MusicPlayer from "./MusicPlayer";
+import ASong from "./song/ASong";
 
-/* ==== TYPE DEFINITION ===================================================== */
-export enum LoopPolicy { NONE, SONG, ALL }
-
-export abstract class MusicQueue {
+export default abstract class MusicQueue {
 
     /* ==== CONSTRUCTOR ===================================================== */
-    constructor(cacheSize: number = 5, loopPolicy: LoopPolicy = LoopPolicy.NONE) {
+    constructor(cacheSize: number = 5, loopPolicy: MusicPlayer.LoopPolicy = MusicPlayer.LoopPolicy.NONE) {
         this.cacheSize = cacheSize;
         this.loopPolicy = loopPolicy;
     }
@@ -25,7 +23,7 @@ export abstract class MusicQueue {
      *  "NONE": `skip()` effectively removes the current song.
      *  "SONG": `skip()` has no effect on queue - current song is played again.
      *  "ALL": `skip()` puts current song at the top of the queue. */
-    public loopPolicy: LoopPolicy;
+    public loopPolicy: MusicPlayer.LoopPolicy;
 
     /* ==== ABSTRACT METHODS ================================================ */
     public abstract play(): Promise<boolean>;
@@ -85,12 +83,12 @@ export abstract class MusicQueue {
 
         // If skip has been forced or the song inner queue is empty, skip song
         if(force || !keep) {
-            if(this.loopPolicy === LoopPolicy.NONE) {
+            if(this.loopPolicy === MusicPlayer.LoopPolicy.NONE) {
                 const song = this.queue.shift();
                 if(song) this.addToCache(song);
             }
             
-            else if(this.loopPolicy === LoopPolicy.ALL) {
+            else if(this.loopPolicy === MusicPlayer.LoopPolicy.ALL) {
                 const song = this.queue.shift();
                 if(song) await this.add(song);
             } 
@@ -141,7 +139,7 @@ export abstract class MusicQueue {
 
     /** Updates the current loop policy for this player.
      *  If no policy is specified, it is updated based on current setting. */
-    public async setLoopPolicy(loopPolicy?: LoopPolicy): Promise<void> {
+    public async setLoopPolicy(loopPolicy?: MusicPlayer.LoopPolicy): Promise<void> {
         if(loopPolicy)  this.loopPolicy = loopPolicy;
         else            this.toggleLoopPolicy();
 
@@ -150,14 +148,14 @@ export abstract class MusicQueue {
 
     /** Updates the current loop policy based on the current setting. */
     public toggleLoopPolicy() {
-        if(this.loopPolicy == LoopPolicy.NONE)
-            return this.loopPolicy = LoopPolicy.SONG;
+        if(this.loopPolicy == MusicPlayer.LoopPolicy.NONE)
+            return this.loopPolicy = MusicPlayer.LoopPolicy.SONG;
 
-        if(this.loopPolicy == LoopPolicy.SONG)
-            return this.loopPolicy = LoopPolicy.ALL;
+        if(this.loopPolicy == MusicPlayer.LoopPolicy.SONG)
+            return this.loopPolicy = MusicPlayer.LoopPolicy.ALL;
 
-        if(this.loopPolicy == LoopPolicy.ALL)
-            return this.loopPolicy = LoopPolicy.NONE;
+        if(this.loopPolicy == MusicPlayer.LoopPolicy.ALL)
+            return this.loopPolicy = MusicPlayer.LoopPolicy.NONE;
     }
 
     /** Randomly changes the position of all the songs in the queue, except

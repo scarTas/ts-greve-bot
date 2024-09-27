@@ -1,9 +1,9 @@
 import { AttachmentBuilder, User } from "discord.js";
 import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { overlap } from "../../classes/image/jimp";
-import { getUserFromMessage } from "../../classes/user/userService";
-import { Logger } from "../../classes/logging/Logger";
+import Images from "../../classes/image/images";
+import Logger from "../../classes/logging/Logger";
+import UserRepository from "../../classes/user/UserRepository";
 
 export const fileRegex = /^https?:\/\/.*$/;
 const baseImage: string = "./assets/images/drip.png";
@@ -25,7 +25,7 @@ const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { fil
         if(!path) return;
 
         // Add provided image to drip base image and invoke callback on success
-        overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
+        Images.overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
             .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
             .catch(e => Logger.warn("Error overlapping images", e) );
     },
@@ -41,7 +41,7 @@ const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { fil
         }
 
         // Try to retrieve the mentioned or written user from the first argument
-        getUserFromMessage(msg, arg)
+        UserRepository.getUserFromMessage(msg, arg)
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
         .then( user => {

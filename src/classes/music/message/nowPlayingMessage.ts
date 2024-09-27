@@ -1,13 +1,12 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { DynamicMessage } from "./dynamicMessage";
-import { ASong, SongType } from "../song/ASong";
+import DynamicMessage from "./dynamicMessage";
 import HaramLeotta from "../../..";
-import { MusicPlayer } from "../MusicPlayer";
+import MusicPlayer from "../MusicPlayer";
 import { secondsToString } from "../../../utils/length";
-import { LoopPolicy } from "../MusicQueue";
 import { AudioPlayerStatus } from "@discordjs/voice";
+import ASong from "../song/ASong";
 
-export class NowPlayingMessage extends DynamicMessage {
+export default class NowPlayingMessage extends DynamicMessage {
 
     /** Updates the content of the message displaying current playing song. */
     updateContent(musicPlayer: MusicPlayer): DynamicMessage | undefined {
@@ -32,7 +31,7 @@ export class NowPlayingMessage extends DynamicMessage {
                 value: `**Enqueued songs: [\`${queue.length}\`]**`, inline: true
             })
 
-            if(song.type === SongType.YOUTUBE_MIX) {
+            if(song.type === ASong.SongType.YOUTUBE_MIX) {
                 embed.setFooter({
                     text: "This is a Youtube Mix! To skip it, use the `ham skipmix` command."
                 });
@@ -47,8 +46,8 @@ export class NowPlayingMessage extends DynamicMessage {
 
 
         // Generate embed reactions to be used as command shortcuts
-        const anyLoop: boolean = musicPlayer.loopPolicy !== LoopPolicy.NONE;
-        const songLoop: boolean = musicPlayer.loopPolicy === LoopPolicy.SONG;
+        const anyLoop: boolean = musicPlayer.loopPolicy !== MusicPlayer.LoopPolicy.NONE;
+        const songLoop: boolean = musicPlayer.loopPolicy === MusicPlayer.LoopPolicy.SONG;
         const paused: boolean = musicPlayer.player.state.status === AudioPlayerStatus.Paused;
 
         const component = new ActionRowBuilder().addComponents(

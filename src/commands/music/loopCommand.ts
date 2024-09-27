@@ -1,10 +1,9 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../classes/music/MusicPlayer";
-import { LoopPolicy } from "../../classes/music/MusicQueue";
+import MusicPlayer from "../../classes/music/MusicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolicy?: LoopPolicy }, void> = {
+const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolicy?: MusicPlayer.LoopPolicy }, void> = {
     // Command metadata for "help" command and general info about the command
     category: "Music", description: "Changes the loop setting to \"none\", \"song\", \"all\".",
     aliases: ["loop"], usage: "TODO",
@@ -22,16 +21,16 @@ const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolic
     onMessageCreateTransformer: (msg, _content, args, command) => {
 
         // Parse input loop policy 
-        let loopPolicy: string | LoopPolicy | undefined = args.pop();
+        let loopPolicy: string | MusicPlayer.LoopPolicy | undefined = args.pop();
         if(loopPolicy) {
             loopPolicy = loopPolicy.toUpperCase();
-            if(loopPolicy === "NONE") loopPolicy = LoopPolicy.NONE;
-            else if(loopPolicy === "SONG") loopPolicy = LoopPolicy.SONG;
-            else if(loopPolicy === "ALL") loopPolicy = LoopPolicy.ALL;
+            if(loopPolicy === "NONE") loopPolicy = MusicPlayer.LoopPolicy.NONE;
+            else if(loopPolicy === "SONG") loopPolicy = MusicPlayer.LoopPolicy.SONG;
+            else if(loopPolicy === "ALL") loopPolicy = MusicPlayer.LoopPolicy.ALL;
             else return;
         }
         
-        command({ i: msg, loopPolicy: loopPolicy as LoopPolicy | undefined }, () => {})
+        command({ i: msg, loopPolicy: loopPolicy as MusicPlayer.LoopPolicy | undefined }, () => {})
     },
 
     // Transformer that parses the interaction before invoking the core command,

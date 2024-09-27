@@ -1,14 +1,14 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, TextBasedChannel, TextChannel } from "discord.js";
-import { DynamicMessage } from "./dynamicMessage";
-import { MusicPlayer } from "../MusicPlayer";
-import { ASong } from "../song/ASong";
-import { YoutubeSong } from "../song/youtube/YoutubeSong";
+import DynamicMessage from "./dynamicMessage";
+import MusicPlayer from "../MusicPlayer";
+import ASong from "../song/ASong";
+import YoutubeSong from "../song/youtube/YoutubeSong";
 import { sleep } from "../../../utils/sleep";
-import { Logger } from "../../logging/Logger";
+import Logger from "../../logging/Logger";
 
 const RESULTS_PER_PAGE: number = 10;
 
-export class QueryMessage extends DynamicMessage {
+export default class QueryMessage extends DynamicMessage {
 
     /* ==== STATIC PROPERTIES =============================================== */
     /** Map used to memorize music oplayer information relatively to servers. */

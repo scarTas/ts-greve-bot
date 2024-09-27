@@ -1,50 +1,20 @@
 import axios from "axios";
-import { ASong, SongType } from "../ASong";
-import { YoutubeSong } from "./YoutubeSong";
+import ASong from "../ASong";
+import YoutubeSong from "./YoutubeSong";
 
-export class YoutubePlaylistSong extends ASong {
+export default class YoutubePlaylistSong extends ASong {
 
     /* ==== CONSTRUCTOR ===================================================== */
     /** Initialize required data, add playlist URI and custom length, which is
      *  not a timestamp but is the size of the Playlist in items. */
     public constructor(title: string, id: string, size: number) {
-        super(SongType.YOUTUBE_PLAYLIST, id, title, `https://www.youtube.com/playlist?list=${id}`);
+        super(ASong.SongType.YOUTUBE_PLAYLIST, id, title, `https://www.youtube.com/playlist?list=${id}`);
         this.lengthString = `Playlist ${size}`;
     }
 
     //! getStream is not implemented! This song type is not meant to be played.
 
-    /* ==== STATIC PROEPRTIES =============================================== */
-    /** Regex that matches a valid Youtube playlist uri and extract its id. */
-    private static regex: RegExp = /youtu(?:\.be|be(?:-nocookie)?\.com)\/playlist\?list=([0-9a-zA-Z_-]{18,41})$/;
-
-    /* ==== STATIC METHODS ================================================== */
-    /** Validates a Youtube URI, returning the playlist id if the URI is valid. */
-    public static getPlaylistId = function(url: string): undefined | string {
-        const result = YoutubePlaylistSong.regex.exec(url);
-        if(result && result.length > 1) return result[1];
-    }
-
-    /** Retrieve initial context metadata necessary to navigate the playlist. */
-    public static async getPlaylistInitData(id: string): Promise<any> {
-        // Call Youtube endopint and retrieve initData associated to playlist.
-        const uri = `https://www.youtube.com/playlist?list=${id}`;
-        const { data }: { data: string } = await axios.get(uri/*, { headers: { cookie }}*/);
-    
-        // This endpoint is not an API - extract json data from html elements
-        const initData = JSON.parse(data.split('var ytInitialData =')[1].split("</script>")[0].slice(0, -1));
-    
-        // Extract API key
-        const innerTubeApiKey: string[] = data.split("innertubeApiKey");
-        const apiToken: string | undefined = innerTubeApiKey.length > 0 ? innerTubeApiKey[1].trim().split(",")[0].split('"')[2] : undefined;
-    
-        // Extract context
-        const innerTubeContext: string[] = data.split('INNERTUBE_CONTEXT');
-        const context: string = innerTubeContext.length > 0 ? JSON.parse(innerTubeContext[1].trim().slice(2, -2)) : null;
-    
-        return { initData, apiToken, context };
-    };
-
+    /* ==== PUBLIC STATIC METHODS =========================================== */
     /** Returns a list of YoutubeSong instances with all the songs retrieved
      *  from the input playlist id. */
     public static async fromUri(uri: string): Promise<YoutubeSong[] | undefined> {
@@ -96,9 +66,41 @@ export class YoutubePlaylistSong extends ASong {
         } while(continuation);
     
         return items;
-        //return { items, metadata: initData.metadata };                          //Ritorno la lista di tutti i video e dati relativi alla playlist
+    };
+
+    /* ==== PRIVATE STATIC METHODS ========================================== */
+    /** Regex that matches a valid Youtube playlist uri and extract its id. */
+    private static regex: RegExp = /youtu(?:\.be|be(?:-nocookie)?\.com)\/playlist\?list=([0-9a-zA-Z_-]{18,41})$/;
+
+    /** Validates a Youtube URI, returning the playlist id if the URI is valid. */
+    private static getPlaylistId = function(url: string): undefined | string {
+        const result = YoutubePlaylistSong.regex.exec(url);
+        if(result && result.length > 1) return result[1];
+    }
+
+    /** Retrieve initial context metadata necessary to navigate the playlist. */
+    private static async getPlaylistInitData(id: string): Promise<any> {
+        // Call Youtube endopint and retrieve initData associated to playlist.
+        const uri = `https://www.youtube.com/playlist?list=${id}`;
+        const { data }: { data: string } = await axios.get(uri/*, { headers: { cookie }}*/);
+    
+        // This endpoint is not an API - extract json data from html elements
+        const initData = JSON.parse(data.split('var ytInitialData =')[1].split("</script>")[0].slice(0, -1));
+    
+        // Extract API key
+        const innerTubeApiKey: string[] = data.split("innertubeApiKey");
+        const apiToken: string | undefined = innerTubeApiKey.length > 0 ? innerTubeApiKey[1].trim().split(",")[0].split('"')[2] : undefined;
+    
+        // Extract context
+        const innerTubeContext: string[] = data.split('INNERTUBE_CONTEXT');
+        const context: string = innerTubeContext.length > 0 ? JSON.parse(innerTubeContext[1].trim().slice(2, -2)) : null;
+    
+        return { initData, apiToken, context };
     };
         
+    /** Youtube Playlists JSON data is similar from first call to follow ups.
+     *  When a JSON payload is retrieved, this method is used to extract raw
+     *  data and parse it into YoutubeSong instances. */
     private static getResultsFromPlaylistContents(contents: any): YoutubeSong[] {
         const results = [];
         for(const item of contents) {

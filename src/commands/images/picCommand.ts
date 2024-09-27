@@ -2,7 +2,7 @@ import { EmbedBuilder, User } from "discord.js";
 import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
-import { getUserFromMessage } from "../../classes/user/userService";
+import UserRepository from "../../classes/user/UserRepository";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder[] }> = {
@@ -27,7 +27,7 @@ const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder
     // and handles the message reply with the provided output.
     onMessageCreateTransformer: (msg, _content, args, command) => {
         // Try to retrieve the mentioned or written user from the first argument
-        getUserFromMessage(msg, args[0])
+        UserRepository.getUserFromMessage(msg, args[0])
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
         .then( user => {

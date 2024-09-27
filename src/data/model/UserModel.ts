@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { IUserModel } from "../interfaces/IUserModel";
-import { ASong } from "../../classes/music/song/ASong";
+import IUserModel from "../interfaces/IUserModel";
+import ASong from "../../classes/music/song/ASong";
 
 /** Model to be used to read, save and update User metadata to Mongo database.
  *  All the properties reflect the ones described in `IUserModel` and `ASong`.
  *  Check those interfaces for more informations about the properties. */
-export const UserModel = mongoose.model<IUserModel>("User", new mongoose.Schema<IUserModel>({
+const UserModel = mongoose.model<IUserModel>("User", new mongoose.Schema<IUserModel>({
     _id: { type: String, required: true },
     prefix: String,
     favourites: [ new mongoose.Schema<ASong>({
@@ -18,3 +18,5 @@ export const UserModel = mongoose.model<IUserModel>("User", new mongoose.Schema<
         lengthString: String
     }) ]
 }));
+
+export default UserModel;

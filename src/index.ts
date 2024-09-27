@@ -1,6 +1,6 @@
 import { GatewayIntentBits, Options, Client, ActivityType, CacheFactory, ColorResolvable } from 'discord.js';
-import { Logger } from "./classes/logging/Logger";
-import { onReady } from './events/onReady';
+import Logger from "./classes/logging/Logger";
+import onReady from './events/onReady';
 import onMessageCreate from './events/onMessageCreate';
 import onInteractionCreate from './events/onInteractionCreate';
 

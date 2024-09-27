@@ -1,20 +1,21 @@
 import axios from "axios";
-import { ASong, SongType } from "../ASong";
-import { YoutubeSong } from "../youtube/YoutubeSong";
+import ASong from "../ASong";
+import YoutubeSong from "../youtube/YoutubeSong";
 import { Readable } from 'stream';
-import { Logger } from "../../../logging/Logger";
+import Logger from "../../../logging/Logger";
 
-export class SpotifySong extends ASong {
+export default class SpotifySong extends ASong {
 
     /* ==== CONSTRUCTOR ===================================================== */
     /** Initialize song with requried data and length in seconds (always
      *  present) and thumbnail (if any). */
     public constructor(id: string, title: string, lengthSeconds: number, thumbnail?: string) {
-        super(SongType.SPOTIFY, id, title, `https://open.spotify.com/track/${id}`);
+        super(ASong.SongType.SPOTIFY, id, title, `https://open.spotify.com/track/${id}`);
         this.thumbnail = thumbnail;
         this.lengthSeconds = lengthSeconds;
     }
 
+    /* ==== METHODS ========================================================= */
     /** Spotify songs are actually Youtube videos under the hood (for now).
      *  TODO: try to retrieve Readable stream from Spotify directly.
      *  Youtube is queried with the song title (which contains song name and

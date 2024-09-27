@@ -1,9 +1,9 @@
 import { BaseChannel, DMChannel, EmbedBuilder, TextChannel, TextBasedChannelFields, PartialGroupDMChannel } from "discord.js";
 import { CommandMetadata } from "../types";
-import { isSortbyValid, retrieveLatestPost } from "../../classes/reddit/Reddit";
 import HaramLeotta from "../..";
-import { Logger } from "../../classes/logging/Logger";
+import Logger from "../../classes/logging/Logger";
 import { RedditSortBy } from "../../classes/reddit/types";
+import Reddit from "../../classes/reddit/Reddit";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw?: boolean }, { content?: string, embeds?: EmbedBuilder[] }> = {
@@ -16,7 +16,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
     command: ({ groupId, subreddit, sortby, nsfw }, callback) => {
 
         // Search for the first available post and parse its metadata
-        retrieveLatestPost(groupId, subreddit, sortby)
+        Reddit.retrieveLatestPost(groupId, subreddit, sortby)
             .then(post => {
                 // If no post is found, send an error message
                 if(!post) return callback({ content: "Subreddit not found" });
@@ -135,7 +135,7 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
         if(!subreddit?.length) return;
 
         // Retrieve sortby configuration, if any
-        if(args.length && isSortbyValid(args[0])) {
+        if(args.length && Reddit.isSortbyValid(args[0])) {
             sortby = args.shift() as RedditSortBy;
         }
 

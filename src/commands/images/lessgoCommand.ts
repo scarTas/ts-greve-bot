@@ -1,10 +1,10 @@
 import { AttachmentBuilder, User } from "discord.js";
 import { CommandMetadata } from "../types";
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { overlap } from "../../classes/image/jimp";
 import { fileRegex } from "./dripCommand";
-import { getUserFromMessage } from "../../classes/user/userService";
-import { Logger } from "../../classes/logging/Logger";
+import Logger from "../../classes/logging/Logger";
+import Images from "../../classes/image/images";
+import UserRepository from "../../classes/user/UserRepository";
 
 const baseImage: string = "./assets/images/lessgo.png";
 
@@ -25,7 +25,7 @@ const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { f
         if(!path) return;
 
         // Add provided image to drip base image and invoke callback on success
-        overlap(baseImage, [
+        Images.overlap(baseImage, [
             { path, xPos: 300, yPos: 180, xRes: 350, yRes: 350, round: true },
             { path, xPos: 330, yPos: 75, xRes: 50, yRes: 50, round: true }
         ])
@@ -44,7 +44,7 @@ const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { f
         }
 
         // Try to retrieve the mentioned or written user from the first argument
-        getUserFromMessage(msg, arg)
+        UserRepository.getUserFromMessage(msg, arg)
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
         .then( user => {

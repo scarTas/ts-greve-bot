@@ -1,8 +1,8 @@
 import { Interaction } from "discord.js";
 import { commandMetadatas } from "./onMessageCreate";
-import { Context } from "../classes/logging/Context";
+import Context from "../classes/logging/Context";
 import { CommandMetadata } from "../commands/types";
-import { Logger } from "../classes/logging/Logger";
+import Logger from "../classes/logging/Logger";
 
 export default function (interaction: Interaction): void {
     // Before executing any logic, initialize context for verbose logging

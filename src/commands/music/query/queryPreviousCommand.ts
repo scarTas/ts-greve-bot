@@ -1,6 +1,6 @@
 import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import { QueryMessage } from "../../../classes/music/message/queryMessage";
+import QueryMessage from "../../../classes/music/message/queryMessage";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const queryPreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {

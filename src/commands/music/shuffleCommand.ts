@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
-import { MusicPlayer } from "../../classes/music/MusicPlayer";
+import MusicPlayer from "../../classes/music/MusicPlayer";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const shuffleCommandMetadata: CommandMetadata<{ msg: Message }, { content: string }> = {

@@ -1,23 +1,23 @@
 import ytdl from "@distube/ytdl-core";
 //import ytdl from "ytdl-core";
 import { secondsToString, stringToSeconds } from "../../../../utils/length";
-import { ASong, SongType } from "../ASong";
+import ASong from "../ASong";
 import { Readable } from 'stream';
-import { Logger } from "../../../logging/Logger";
-import { YoutubePlaylistSong } from "./YoutubePlaylistSong";
+import Logger from "../../../logging/Logger";
+import YoutubePlaylistSong from "./YoutubePlaylistSong";
 const YouTubeSearchApi = require("youtube-search-api");
 
-export class YoutubeSong extends ASong {
+export default class YoutubeSong extends ASong {
 
-    /** ==== CONSTRUCTOR ==================================================== */
+    /* ==== CONSTRUCTOR ===================================================== */
     public constructor(title: string, id: string, lengthSeconds: number, lengthString: string, thumbnail?: string) {
-        super(SongType.YOUTUBE, id, title, `https://www.youtube.com/watch?v=${id}`);
+        super(ASong.SongType.YOUTUBE, id, title, `https://www.youtube.com/watch?v=${id}`);
         this.thumbnail = thumbnail;
         this.lengthSeconds = lengthSeconds;
         this.lengthString = lengthString;
     }
 
-    /** ==== METHODS ======================================================== */
+    /* ==== METHODS ========================================================= */
     getStream(): Readable {
         return ytdl(this.uri!, {
             begin: 0, agent: ytdl.createAgent(),
@@ -25,7 +25,7 @@ export class YoutubeSong extends ASong {
         });
     }
     
-    /** ==== STATIC PROPERTIES ============================================== */
+    /* ==== STATIC METHODS ================================================== */
     /** Regex that matches video ids in a Youtube video URIs - here's some insights
      *  Ignore initial http(s), since the url might have another encoded youtube url
      *  (ex: http://www.youtube.com/oembed?url=http%3A//www.youtube.com/watch?v%3D-wtIMTCHWuI&format=json)
@@ -42,7 +42,6 @@ export class YoutubeSong extends ASong {
     //public static regex: RegExp = /(?:(?:www|m)\.)?youtu(?:\.be|be(?:-nocookie)?\.com)\/(?:(?:(?:watch|vi?|e(?:mbed)?|shorts|live|user.*[0-9])\/)|.*vi?(?:%3D|=))?([a-zA-Z0-9_-]{11})/gm;
     //public static regex: RegExp = /(?:youtu\.be\/|youtube\.com(?:\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/|embed\/|v\/|m\/|watch\?(?:[^=]+=[^&]+&)*?v=))([^"&?\/\s]{11})/gm;
 
-    /** ==== STATIC METHODS ================================================= */
     /** Validates a Youtube URI, returning the video id if the URI is valid. */
     public static getVideoId = function(url: string): undefined | string {
         const result = YoutubeSong.regex.exec(url);
@@ -51,9 +50,7 @@ export class YoutubeSong extends ASong {
 
     /** Retrieves metadata from a valid Youtube video url. */
     public static getVideoInfo = async function(id: string): Promise<YoutubeSong> {
-        // Normalize URI after extracting video ID
-        const uri = `https://www.youtube.com/watch?v=${id}`;
-        const info = await ytdl.getBasicInfo(uri);
+        const info = await ytdl.getBasicInfo(`https://www.youtube.com/watch?v=${id}`);
         const { title, lengthSeconds: seconds, thumbnails } = info.videoDetails;
         const lengthSeconds = +seconds;
         return new YoutubeSong(
@@ -62,9 +59,21 @@ export class YoutubeSong extends ASong {
         );
     }
 
+    /** Checks whether the provided uri is a valid Youtube video uri.
+     *  If it is, it extracts the song id and creates a song instance with the
+     *  metadata retrieved from the APIs for the given id. */
+    public static async fromUri(uri: string): Promise<YoutubeSong[] | undefined> {
+        const id: string | undefined = YoutubeSong.getVideoId(uri);
+        if(!id) return undefined;
+
+        return [await YoutubeSong.getVideoInfo(id)];
+    }
+
+    /** Uses Youtube search APIs in order to retrieve videos from the query.
+     *  There is a maximum number of results that can be retrieved, but the
+     *  nextPage token can be used to retrieve the next results. */
     public static async search(query: string, limit: number, token?: object): Promise<{ items: YoutubeSong[], nextPage?: object }> {
         // If the token (nextPage token) is provided, use it to go to the next page
-        // TODO: handle playlists
         let items, nextPage;
         if(token)   ({ items, nextPage } = await YouTubeSearchApi.NextPage(token, true, limit));
         else        ({ items, nextPage } = await YouTubeSearchApi.GetListByKeyword(query, true, limit, [{type:"video/playlist"}]));// "video/channel/playlist/movie"

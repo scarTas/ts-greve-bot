@@ -1,17 +1,17 @@
 import { GuildMember, Interaction, Message, PermissionsBitField, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
-import { LoopPolicy, MusicQueue } from "./MusicQueue";
+import MusicQueue from "./MusicQueue";
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, AudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import { Readable } from 'stream';
 import { sleep } from "../../utils/sleep";
-import { ASong } from "./song/ASong";
-import { YoutubeSong } from "./song/youtube/YoutubeSong";
-import { SpotifySong } from "./song/spotify/SpotifySong";
-import { Logger } from "../logging/Logger";
-import { NowPlayingMessage } from "./message/nowPlayingMessage";
-import { QueueMessage } from "./message/queueMessage";
-import { YoutubePlaylistSong } from "./song/youtube/YoutubePlaylistSong";
+import YoutubeSong from "./song/youtube/YoutubeSong";
+import SpotifySong from "./song/spotify/SpotifySong";
+import Logger from "../logging/Logger";
+import NowPlayingMessage from "./message/nowPlayingMessage";
+import QueueMessage from "./message/queueMessage";
+import YoutubePlaylistSong from "./song/youtube/YoutubePlaylistSong";
+import ASong from "./song/ASong";
 
-export class MusicPlayer extends MusicQueue {
+class MusicPlayer extends MusicQueue {
 
     /* ==== STATIC PROPERTIES =============================================== */
     /** Map used to memorize music oplayer information relatively to servers. */
@@ -139,11 +139,29 @@ export class MusicPlayer extends MusicQueue {
         }, "MusicPlayer::get");
     }
 
+    /** Parses an uri into ASong instances that can be played on the MusicPlayer.
+     *  If the uri is invalid or not supported, undefined is returned. */
+    public static async getSong(uri: string): Promise<ASong[] | undefined> {
+
+        let songs: ASong[] | undefined;
+        if(songs = await YoutubeSong.fromUri(uri))          return songs;
+        if(songs = await YoutubePlaylistSong.fromUri(uri))  return songs;
+        if(songs = await SpotifySong.fromSongUri(uri))      return songs;
+        if(songs = await SpotifySong.fromAlbumUri(uri))     return songs;
+        if(songs = await SpotifySong.fromPlaylistUri(uri))  return songs;
+        
+        // TODO: SoundCloud
+        // TODO: YewTube (Youtube mature content that needs authentication)
+
+        // Uri is not supported, return
+        return undefined;
+    }
+
     /* ==== CONSTRUCTOR ===================================================== */
     /** MusicPlayer instances can only be created from the get() method in case
      *  the provided groupId is not present in the musicPlayer list. */
-    protected constructor(groupId: string, voiceChannel: VoiceBasedChannel, textChannel?: TextChannel) {
-        super(5, LoopPolicy.NONE);
+    private constructor(groupId: string, voiceChannel: VoiceBasedChannel, textChannel?: TextChannel) {
+        super(5, MusicPlayer.LoopPolicy.NONE);
         this.voiceChannel = voiceChannel;
         this.groupId = groupId;
 
@@ -286,14 +304,12 @@ export class MusicPlayer extends MusicQueue {
             inputType: StreamType.Arbitrary
         });
 
+        // Connect to voice channel (if not connected already)
         this.connect();
-
         // Update resource volume
         this.setVolume();
         // Bind resource to player
         this.player.play(this.resource);
-
-        // Apply player to connection?
 
         // Update dynamic message displaying the currently playing song
         await this.nowPlayingMessage?.updateContent(this)?.resend();
@@ -353,6 +369,7 @@ export class MusicPlayer extends MusicQueue {
         MusicPlayer.cache.delete(this.groupId);
     }
 
+    /** Updates the content of nowPlayingMessage and queueMessage messages. */
     public async updateDynamicMessages(): Promise<void> {
         await this.nowPlayingMessage?.updateContent(this)?.update();
         if(this.queueMessage?.message) {
@@ -360,29 +377,15 @@ export class MusicPlayer extends MusicQueue {
         }
     }
 
+    /** Deletes nowPlayingMessage and queueMessage messages. */
     public async deleteDynamicMessages(): Promise<void> {
         await this.nowPlayingMessage?.delete();
         await this.queueMessage?.delete();
     }
 }
 
-export const getSong = async function (uri: string): Promise<ASong[] | undefined> {
-    let id;
-
-    // Youtube URLs test
-    let youtubeVideoId: string | undefined = YoutubeSong.getVideoId(uri);
-    if (youtubeVideoId) return [await YoutubeSong.getVideoInfo(youtubeVideoId)];
-
-    // Spotify URLs test
-    let songs: ASong[] | undefined;
-    if(songs = await YoutubePlaylistSong.fromUri(uri))  return songs;
-    if(songs = await SpotifySong.fromSongUri(uri))      return songs;
-    if(songs = await SpotifySong.fromAlbumUri(uri))     return songs;
-    if(songs = await SpotifySong.fromPlaylistUri(uri))  return songs;
-    
-    // TODO: SoundCloud
-    // TODO: YewTube (Youtube mature content that needs authentication)
-
-    // Url is not supported, return
-    return undefined;
+module MusicPlayer {
+    export enum LoopPolicy { NONE, SONG, ALL }
 }
+
+export default MusicPlayer;

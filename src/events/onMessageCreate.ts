@@ -1,14 +1,14 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
-import { getUserPrefix } from "../classes/user/mongoService";
 import { readdir } from 'fs/promises';
 import * as path from 'path';
-import { QueryMessage } from "../classes/music/message/queryMessage";
-import { ASong, SongType } from "../classes/music/song/ASong";
-import { MusicPlayer } from "../classes/music/MusicPlayer";
-import { Context } from "../classes/logging/Context";
+import QueryMessage from "../classes/music/message/queryMessage";
+import ASong from "../classes/music/song/ASong";
+import MusicPlayer from "../classes/music/MusicPlayer";
+import Context from "../classes/logging/Context";
 import { CommandMetadata } from "../commands/types";
-import { Logger } from "../classes/logging/Logger";
-import { YoutubePlaylistSong } from "../classes/music/song/youtube/YoutubePlaylistSong";
+import Logger from "../classes/logging/Logger";
+import YoutubePlaylistSong from "../classes/music/song/youtube/YoutubePlaylistSong";
+import UserRepository from "../classes/user/UserRepository";
 
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
@@ -39,7 +39,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
             if(song) {
 
                 let songs: ASong[];
-                if(song.type === SongType.YOUTUBE_PLAYLIST) {
+                if(song.type === ASong.SongType.YOUTUBE_PLAYLIST) {
                     // URI is actually the playlist ID, not the URI
                     songs = await YoutubePlaylistSong.getSongs(song.id);
                     songs.forEach(s => s.requestor = requestor)
@@ -59,7 +59,7 @@ async function onMessageCreate(msg: Message): Promise<void> {
 
     // If the user has a custom prefix set, retrieve it - always use the default
     let prefix = DEFAULT_PREFIX;
-    const customPrefix = await getUserPrefix(msg.author.id);
+    const customPrefix = await UserRepository.getUserPrefix(msg.author.id);
 
     // Compose regex to be used to detect and replace prefix from the message.
     // Put longer prefix first so that, if the custom prefix starts with the

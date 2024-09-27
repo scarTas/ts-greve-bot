@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { isLanguageValid, translate } from "../../classes/translate/GoogleTranslate";
 import { CommandMetadata } from "../types";
-import { Logger } from "../../classes/logging/Logger";
+import Logger from "../../classes/logging/Logger";
+import GoogleTranslate from "../../classes/translate/GoogleTranslate";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: string, fromLanguage?: string }, { content: string }> = {
@@ -12,10 +12,10 @@ const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: st
     
     // Actual core command with business logic implementation
     command: ({ query, toLanguage, fromLanguage }, callback) => {
-        if(!isLanguageValid(toLanguage)) return;
+        if(!GoogleTranslate.isLanguageValid(toLanguage)) return;
 
         // Search for the first article that matches the query and compose uri
-        translate(query, toLanguage!, fromLanguage)
+        GoogleTranslate.translate(query, toLanguage!, fromLanguage)
             ?.then(text => text && callback({ content: text }))
             .catch(e => Logger.error("Error during translation", e));
     },
@@ -27,9 +27,9 @@ const translateCommandMetadata: CommandMetadata<{ query: string, toLanguage?: st
         let toLanguage: string | undefined = args.pop();
         let fromLanguage: string | undefined;
         // If the language is not valid, do nothing
-        if(!isLanguageValid(toLanguage)) return;
+        if(!GoogleTranslate.isLanguageValid(toLanguage)) return;
         // If last arg (before toLang) is a language, use it as source language
-        if(isLanguageValid(args[args.length-1])) {
+        if(GoogleTranslate.isLanguageValid(args[args.length-1])) {
             fromLanguage = args.pop();
         }
         // If there are arguments left, join the sentence and call che command

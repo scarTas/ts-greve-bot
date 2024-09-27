@@ -1,19 +1,21 @@
 import { Message, MessagePayload, TextChannel } from "discord.js";
-import { Logger } from "../../logging/Logger";
+import Logger from "../../logging/Logger";
 
-export class DynamicMessage {
-    /** Text channel in which the message will be sent. */
-    textChannel: TextChannel;
-    /** Sent message to be deleted or updated. */
-    message?: Message;
-    /** Content of the message. */
-    content?: string | MessagePayload; // | MessageCreateOptions | MessageEditOptions;
+export default class DynamicMessage {
 
     /* ==== CONSTRUCTOR ===================================================== */
     constructor(textChannel: TextChannel){
         this.textChannel = textChannel;
     }
 
+    /* ==== PROPERTIES ====================================================== */
+    /** Text channel in which the message will be sent. */
+    textChannel: TextChannel;
+    /** Sent message to be deleted or updated. */
+    message?: Message;
+    /** Content of the message. */
+    content?: string | MessagePayload; // | MessageCreateOptions | MessageEditOptions;
+    
     /* ==== METHODS ========================================================= */
     /** Updates message content - used for any new message or update. */
     setContent(content: any): DynamicMessage {

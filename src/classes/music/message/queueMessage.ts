@@ -1,12 +1,12 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { DynamicMessage } from "../../../classes/music/message/dynamicMessage";
-import { MusicPlayer } from "../MusicPlayer";
+import DynamicMessage from "../../../classes/music/message/dynamicMessage";
+import MusicPlayer from "../MusicPlayer";
 import { secondsToString } from "../../../utils/length";
-import { ASong } from "../song/ASong";
+import ASong from "../song/ASong";
 
 const RESULTS_PER_PAGE: number = 10;
 
-export class QueueMessage extends DynamicMessage {
+export default class QueueMessage extends DynamicMessage {
     public currentPage: number = 0;
 
     /** Calculates the last usable page index (starting from 0) for the queue

@@ -1,8 +1,7 @@
-import { Context } from "./Context";
+import Context from "./Context";
+import { LogLevel } from "./types";
 
-type LogLevel = { id: number, label: string, color: string };
-
-export class Logger {
+export default class Logger {
 
     /* ==== PUBLIC STATIC METHODS =========================================== */
     public static trace =  (msg: string)               =>  Logger.print(Logger.LogLevels.trace, msg);
@@ -13,13 +12,13 @@ export class Logger {
 
     /* ==== STATIC CONFIGURATION ============================================ */
     /** Format separators characters to be used to change the text color */
-    private static Colors: { [k: string]: string } = {
+    private static readonly Colors: { [k: string]: string } = {
         reset: "\x1b[0m",   dim: "\x1b[90m",    bright: "\x1b[1m",  red: "\x1b[31m",
         yellow: "\x1b[33m", green: "\x1b[32m",  blue: "\x1b[36m",   purple: "\x1b[35m"
     }
 
     /** Available logging levels - contain metadata used to format the logs */
-    private static LogLevels: { [k: string]: LogLevel } = {
+    private static readonly LogLevels: { [k: string]: LogLevel } = {
         trace:  { id: 0, label: "TRC", color: Logger.Colors.purple  },
         debug:  { id: 1, label: "DBG", color: Logger.Colors.blue    },
         info:   { id: 2, label: "INF", color: Logger.Colors.green   },
@@ -28,14 +27,14 @@ export class Logger {
     }
 
     /** Logger date options - format "20/05/2024, 22:06:31.531". */
-    private static dateOptions: any/*Intl.DateTimeFormatOptions*/ = {
+    private static readonly dateOptions: any/*Intl.DateTimeFormatOptions*/ = {
         year: "numeric", month: "numeric", day: "numeric",
         hour: "numeric", minute: "numeric", second: "numeric",
         fractionalSecondDigits: 3
     };
-
+    
     /** Global log level retrieved and set by the environment - if none is found, info is used. */
-    static logLevel: LogLevel = (() => {
+    private static readonly logLevel: LogLevel = (() => {
         if(process.env.LOG_LEVEL)
             for(const entry of Object.entries(Logger.LogLevels)) {
                 const [k, v] = entry;
@@ -44,9 +43,8 @@ export class Logger {
     
         return Logger.LogLevels.info;
     })();
-    
 
-    /* ==== STATIC METHODS ================================================== */
+    /* ==== PRIVATE STATIC METHODS ========================================== */
     /** Prints coloured log level and timestamp, followed by message and error stacktrace (if any).
      *  Ex: "[INFO] 20/05/2024, 22:06:31.531 [//] Hello world!"
      *  @param {Logger.LogLevels} logLevel Log level associated with this log.

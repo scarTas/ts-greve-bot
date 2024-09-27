@@ -1,19 +1,19 @@
 import axios from "axios";
-import { YoutubeSong } from "./YoutubeSong";
+import YoutubeSong from "./YoutubeSong";
 import { stringToSeconds } from "../../../../utils/length";
-import { ASong, SongType } from "../ASong";
-import { Logger } from "../../../logging/Logger";
+import ASong from "../ASong";
+import Logger from "../../../logging/Logger";
 import { Readable } from 'stream';
 
-export class YoutubeMixSong extends ASong {
+export default class YoutubeMixSong extends ASong {
   
     /* ==== CONSTRUCTOR ===================================================== */
     /** Initialize required data, add MIX uri and save informations about the
      *  mix (queue of songs, visitorData token).
      *  A mix has no defined duration and title, but it changes with the current
      *  song that is playing at the moment. */
-    public constructor(id: string, visitorData: string, queue: YoutubeSong[]) {
-        super(SongType.YOUTUBE_MIX, id, "MIX", `https://www.youtube.com/watch?v=${id}&list=RD${id}`);
+    private constructor(id: string, visitorData: string, queue: YoutubeSong[]) {
+        super(ASong.SongType.YOUTUBE_MIX, id, "MIX", `https://www.youtube.com/watch?v=${id}&list=RD${id}`);
         this.visitorData = visitorData;
         this.queue = queue;
 
@@ -34,35 +34,16 @@ export class YoutubeMixSong extends ASong {
      *  seen entry and read from there. */
     lastVideoId: string | undefined;
 
-    /* ==== METHODS ========================================================= */
-    private getCurrent(): YoutubeSong {
-        return this.queue[0];
-    }
-    /** A mix has no defined metadata. This method sets the song metadata to
-     *  whatever the current playing song in the queue has, with slight
-     *  changes in order to remind the user that this is a Mix. */
-    private updateMetadata() {
-        // Retrieve current song
-        const song = this.getCurrent();
-        // Add "MIX" to the original song title
-        this.title = `MIX - ${song.title}`;
-        // Create Youtube video url for this Mix
-        this.uri = `https://www.youtube.com/watch?v=${song.id}&list=RD${this.id}`;
-        // Use original durations and thumbnail
-        this.lengthSeconds = song.lengthSeconds;
-        this.lengthString = song.lengthString;
-        this.thumbnail = song.thumbnail
-    }
-
+    /* ==== PUBLIC METHODS ================================================== */
     /** Returns the stream of the song to be played. */
-    getStream(): Readable { return this.getCurrent().getStream(); }
+    public getStream(): Readable { return this.getCurrent().getStream(); }
 
     /** Called by the MusicPlayer when the previous Mix song finished playing.
      *  Saves the id of the latest song and removes it from the queue.
      *  If the queue empties, new items are retrieved from Youtube APIs.
      *  Update current metadata with first enqueued song and return TRUE.
      *  FALSE would cause the MusicPlayer to skip the YoutubeMixSong. */
-    async skip(): Promise<boolean> {
+    public async skip(): Promise<boolean> {
         // Remove first element in the queue (if any)
         this.lastVideoId = this.queue.shift()?.id;
 
@@ -79,7 +60,27 @@ export class YoutubeMixSong extends ASong {
         return true;
     }
 
-    /* ==== STATIC METHODS ================================================== */
+    /* ==== PRIVATE METHODS ================================================= */
+    /** Retrieves first element in the inner songs queue. */
+    private getCurrent(): YoutubeSong { return this.queue[0]; }
+
+    /** A mix has no defined metadata. This method sets the song metadata to
+     *  whatever the current playing song in the queue has, with slight
+     *  changes in order to remind the user that this is a Mix. */
+    private updateMetadata() {
+        // Retrieve current song
+        const song = this.getCurrent();
+        // Add "MIX" to the original song title
+        this.title = `MIX - ${song.title}`;
+        // Create Youtube video url for this Mix
+        this.uri = `https://www.youtube.com/watch?v=${song.id}&list=RD${this.id}`;
+        // Use original durations and thumbnail
+        this.lengthSeconds = song.lengthSeconds;
+        this.lengthString = song.lengthString;
+        this.thumbnail = song.thumbnail
+    }
+
+    /* ==== PUBLIC STATIC METHODS =========================================== */
     /** Creates and returns a YoutubeMixSong instance, creating a Mix with the
      *  input video id that can be played indefinitely. */
     public static async fromId(videoId: string): Promise<YoutubeMixSong> {
@@ -103,6 +104,9 @@ export class YoutubeMixSong extends ASong {
         return new YoutubeMixSong(videoId, visitorData, songs);
     }
 
+    /* ==== PRIVATE STATIC METHODS ========================================== */
+    /** Retrieves the next elements of the Youtube Mix playlist, starting from
+     *  the last video already enqueued. */
     private static async getNextVideos(mixId: string, lastVideoId: string | undefined, visitorData: string) {
         // Call Youtube API and retrieve metadata associated to this visitor Mix
         const uri = `https://www.youtube.com/youtubei/v1/next?prettyPrint=false`;
@@ -135,8 +139,8 @@ export class YoutubeMixSong extends ASong {
         //this.queue.push(...filteredQueue);
     }
 
-    /** Youtube Mixes Json data is always the same.
-     *  When a Json payload is retrieved, this method is used to extract raw
+    /** Youtube Mixes JSON data is always the same.
+     *  When a JSON payload is retrieved, this method is used to extract raw
      *  data and parse it into YoutubeSong instances. */
     private static extractSongsFromResponse(response: any) {
         // Extract song metadata from Json response

@@ -1,10 +1,8 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import { v4 as uuidv4 } from 'uuid';
+import { ContextData, ContextDataKey } from './types';
 
-export type ContextData = { requestId?: string, commandId?: string, userId?: string, serverId?: string };
-export type ContextDataKey = "request-id" | "command-id" |  "user-id" | "server-id";
-
-export class Context {
+export default class Context {
 
     /* ==== PROPERTIES ====================================================== */
     /** Object that creates stores that stay coherent through asynchronous operations.

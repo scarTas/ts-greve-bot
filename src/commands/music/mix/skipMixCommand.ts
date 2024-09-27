@@ -1,5 +1,5 @@
 import { Interaction, Message } from "discord.js";
-import { MusicPlayer } from "../../../classes/music/MusicPlayer";
+import MusicPlayer from "../../../classes/music/MusicPlayer";
 import { CommandMetadata } from "../../types";
 
 /** Define command metadata and handler methods for text and slash commands. */

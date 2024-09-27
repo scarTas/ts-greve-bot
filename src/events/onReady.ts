@@ -1,12 +1,12 @@
+import { Mongoose } from "mongoose";
 import HaramLeotta from "..";
-import { Logger } from "../classes/logging/Logger";
-import { connect } from "../data/mongoose";
+import Logger from "../classes/logging/Logger";
 import { registerCommands } from "./onMessageCreate";
-
+import MongooseConfig from "../data/MongooseConfig";
 
 /** Event triggered when the bot has successfully logged in.
  *  Update bot activity and log some guild info. */
-export const onReady = async () => {
+export default async function onReady() {
     // Register commands
     await registerCommands();
 
@@ -14,7 +14,7 @@ export const onReady = async () => {
     HaramLeotta.get().updatePresence();
 
     // Before finalizing deployment, connect to the database
-    await connect();
+    await MongooseConfig.initialize();
     
     // Retrieve list of guilds the bot is in
     const guilds = HaramLeotta.get().guilds.cache;

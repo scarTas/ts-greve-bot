@@ -1,7 +1,7 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
-import { getArticleUri, isLanguageValid, searchArticleTitles } from "../../classes/wikipedia/Wikipedia";
+import Wikipedia from "../../classes/wikipedia/Wikipedia";
 import { CommandMetadata } from "../types";
-import { Logger } from "../../classes/logging/Logger";
+import Logger from "../../classes/logging/Logger";
 
 /** Define command metadata and handler methods for text and slash commands. */
 const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
@@ -13,8 +13,8 @@ const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string },
     // Actual core command with business logic implementation
     command: ({ query, language }, callback) => {
         // Search for the first article that matches the query and compose uri
-        searchArticleTitles(query, 5, language)
-            .then(articles => getArticleUri(articles[0], language))
+        Wikipedia.searchArticleTitles(query, 5, language)
+            .then(articles => Wikipedia.getArticleUri(articles[0], language))
             .then(uri => callback({ content: uri }))
             .catch(e => { Logger.error("Error retrieving article", e); callback({ content: "??" }) });
     },
@@ -23,7 +23,7 @@ const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string },
     // and handles the message reply with the provided output.
     onMessageCreateTransformer: (msg, _content, args, command) => {
         let language = undefined;
-        if(isLanguageValid( args[args.length-1] )) {
+        if(Wikipedia.isLanguageValid( args[args.length-1] )) {
             language = args.pop();
         }
         if(args.length) command({ query: args.join(" "), language }, getSimpleMessageCallback(msg))

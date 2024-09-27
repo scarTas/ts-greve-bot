@@ -1,9 +1,9 @@
 import { getSimpleMessageCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
-import { MusicPlayer, getSong } from "../../classes/music/MusicPlayer";
-import { ASong } from "../../classes/music/song/ASong";
-import { QueryMessage } from "../../classes/music/message/queryMessage";
+import MusicPlayer from "../../classes/music/MusicPlayer";
+import ASong from "../../classes/music/song/ASong";
+import QueryMessage from "../../classes/music/message/queryMessage";
 
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
@@ -25,7 +25,7 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
 
         // Determine url type and retrieve song - if url is invalid, throw error
         if (uri) {
-            songs = await getSong(uri);
+            songs = await MusicPlayer.getSong(uri);
             // TODO: define error message
             if (songs === undefined) return;
 
