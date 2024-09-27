@@ -9,7 +9,7 @@ const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     aliases: ["queue-delete"],
     
     // This command can only be called by activating queueMessage interaction.
-    hidden: false,
+    hidden: true,
 
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {

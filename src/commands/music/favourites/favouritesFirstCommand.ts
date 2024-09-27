@@ -1,22 +1,20 @@
 import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
-import MusicPlayer from "../../../classes/music/MusicPlayer";
+import FavouritesMessage from "../../../classes/music/message/favouritesMessage";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const queueLastCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
+const favouritesFirstCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     // Command metadata for "help" command and general info about the command
-    category: "Music", description: "When the queue message is displayed, go to the last page",
-    aliases: ["queue-last"],
+    category: "Music", description: "When the favourites list message is displayed, return to the first page",
+    aliases: ["fav-first"],
     
     // This command can only be called by activating queueMessage interaction.
     hidden: true,
 
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
-        MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
-            await musicPlayer.queueMessage?.last(musicPlayer)?.update();
-        })
-        .then(() => callback());
+        FavouritesMessage.get(i, async (favouritesMessage) => await favouritesMessage?.first().update())
+            .then(() => callback());
     },
 
     // Transformer that parses the interaction before invoking the core command,
@@ -25,4 +23,4 @@ const queueLastCommandMetadata: CommandMetadata<{ i: Message | Interaction }, vo
         command({ i: interaction }, () => interaction.deferUpdate())
     }
 }
-export default queueLastCommandMetadata;
+export default favouritesFirstCommandMetadata;

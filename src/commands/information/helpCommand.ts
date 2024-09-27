@@ -36,9 +36,9 @@ const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedB
         } else {
             // Categorize currently available commands into arrays
             const categories: { [k: string]: string[] } = {};
-            for(const [name, {category, onMessageCreateTransformer}] of Object.entries(commandMetadatas)) {
+            for(const [name, {category, hidden}] of Object.entries(commandMetadatas)) {
                 // If the command wasn't made to be called, don't display it (ex: message interaction arrows)
-                if(!onMessageCreateTransformer) continue;
+                if(hidden) continue;
                 if(categories[category])    categories[category].push(name);
                 else                        categories[category] = [name];
             }

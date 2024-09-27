@@ -7,8 +7,9 @@ const queryDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     // Command metadata for "help" command and general info about the command
     category: "Music", description: "Deletes the displayed query message",
     aliases: ["query-delete"],
+    
     // This command can only be called by activating queueMessage interaction.
-    hidden: false,
+    hidden: true,
     
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {

@@ -9,7 +9,7 @@ const queueNextCommandMetadata: CommandMetadata<{ i: Message | Interaction }, vo
     aliases: ["queue-next"],
     
     // This command can only be called by activating queueMessage interaction.
-    hidden: false,
+    hidden: true,
 
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {

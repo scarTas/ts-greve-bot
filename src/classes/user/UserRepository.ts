@@ -2,15 +2,18 @@ import Logger from "../logging/Logger";
 import IUserModel from "../../data/interfaces/IUserModel";
 import UserModel from "../../data/model/UserModel";
 import { Message, User } from "discord.js";
+import ASong from "../music/song/ASong";
+import YoutubeSong from "../music/song/youtube/YoutubeSong";
+import SpotifySong from "../music/song/spotify/SpotifySong";
 
 export default class UserRepository {
 
     /* ==== PUBLIC STATIC METHODS =========================================== */
     /** Given Discord user id, retrieve its prefix from database (if exists).
      *  If no user o saved prefix is found, return undefined. */
-    public static async getUserPrefix(id: string): Promise<string | undefined> {
+    public static async getUserPrefix(userId: string): Promise<string | undefined> {
         try {
-            const user = await UserRepository.getUser(id);
+            const user = await UserRepository.getUser(userId);
             return user?.prefix;
         } catch (e) {
             Logger.error("Error during query", e as Error);
@@ -18,10 +21,10 @@ export default class UserRepository {
     }
 
     /** Given Discord user id and new prefix, update user's prefix in database */
-    public static async updateUserPrefix(id: string, prefix: string): Promise<void> {
+    public static async updateUserPrefix(userId: string, prefix: string): Promise<void> {
         try {
             // Retrieve user from database - if it doesn't exist, create it
-            let user: IUserModel = await UserRepository.getUser(id) ?? new UserModel({ _id: id });
+            let user: IUserModel = await UserRepository.getUser(userId) ?? new UserModel({ _id: userId });
             // Update user prefix to new one
             user.prefix = prefix;
             // Save model to database
@@ -50,9 +53,69 @@ export default class UserRepository {
             .catch( e => { Logger.error("Error retrieving user", e); return undefined; } );
     }
 
+    public static async getUserFavourites(userId: string): Promise<ASong[] | undefined> {
+        try {
+            const user = await UserRepository.getUser(userId);
+            const favourites = user?.favourites || [];
+
+            return favourites.map(f => {
+                if(f.type === ASong.SongType.YOUTUBE)
+                    return new YoutubeSong(f.title, f.id, f.lengthSeconds!, f.lengthString!, f.thumbnail);
+
+                if(f.type === ASong.SongType.SPOTIFY)
+                    return new SpotifySong(f.id, f.title, f.lengthSeconds!, f.thumbnail);
+            }).filter(i => i !== undefined);
+            
+        } catch (e) {
+            Logger.error("Error during query", e as Error);
+        }
+    }
+
+    public static async getUserFavourite(userId: string, index: number): Promise<ASong | undefined> {
+        const favourites: ASong[] | undefined = await UserRepository.getUserFavourites(userId);
+
+        if(!favourites || index < 0 || index >= favourites.length) return;
+        return favourites[index];
+    }
+
+    public static async addUserFavourite(userId: string, song: YoutubeSong | SpotifySong): Promise<void> {
+        // Deconstruct and only retrieve useful data
+        const { id, title, lengthString, lengthSeconds, thumbnail, type } = song;
+
+        try {
+            // Retrieve user from database - if it doesn't exist, create it
+            let user: IUserModel = await UserRepository.getUser(userId) ?? new UserModel({ _id: userId });
+            // Initialize favourites arrya if not present
+            if(!user.favourites) user.favourites = [];
+            // Push song essential data to favourites array
+            user.favourites.push({ id, title, lengthString, lengthSeconds, thumbnail, type } as ASong);
+            // Save updated data to Mongo
+            await user.save();
+            Logger.info("Favourites updated");
+        } catch(e) {
+            Logger.error("Error during query", e as Error);
+        }
+    }
+
+    public static async deleteUserFavourite(userId: string, index: number): Promise<void> {
+        try {
+            // Retrieve user from database - if it doesn't exist, create it
+            let user: IUserModel | null = await UserRepository.getUser(userId);
+            // If the element isn't actually there, do nothing
+            if(!user?.favourites?.[index]) return;
+            // Remove song metadata from favourites array
+            user.favourites.splice(index, 1);
+            // Save updated data to Mongo
+            await user.save();
+            Logger.info("Favourites updated");
+        } catch(e) {
+            Logger.error("Error during query", e as Error);
+        }
+    }
+
     /* ==== PRIVATE STATIC METHODS ========================================== */
     /** Retrieve user from database, if any. */
-    private static getUser(id: string): Promise<IUserModel | null> {
-        return UserModel.findById(id);
+    private static getUser(userId: string): Promise<IUserModel | null> {
+        return UserModel.findById(userId);
     }
 }

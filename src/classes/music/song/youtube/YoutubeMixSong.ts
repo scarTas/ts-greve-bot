@@ -38,6 +38,9 @@ export default class YoutubeMixSong extends ASong {
     /** Returns the stream of the song to be played. */
     public getStream(): Readable { return this.getCurrent().getStream(); }
 
+    /** Retrieves first element in the inner songs queue. */
+    public getCurrent(): YoutubeSong { return this.queue[0]; }
+    
     /** Called by the MusicPlayer when the previous Mix song finished playing.
      *  Saves the id of the latest song and removes it from the queue.
      *  If the queue empties, new items are retrieved from Youtube APIs.
@@ -61,9 +64,6 @@ export default class YoutubeMixSong extends ASong {
     }
 
     /* ==== PRIVATE METHODS ================================================= */
-    /** Retrieves first element in the inner songs queue. */
-    private getCurrent(): YoutubeSong { return this.queue[0]; }
-
     /** A mix has no defined metadata. This method sets the song metadata to
      *  whatever the current playing song in the queue has, with slight
      *  changes in order to remind the user that this is a Mix. */

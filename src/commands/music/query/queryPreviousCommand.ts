@@ -9,7 +9,7 @@ const queryPreviousCommandMetadata: CommandMetadata<{ i: Message | Interaction }
     aliases: ["query-previous"],
     
     // This command can only be called by activating queueMessage interaction.
-    hidden: false,
+    hidden: true,
 
     // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
