@@ -24,26 +24,23 @@ export default class GoogleTranslate {
 
     /** Translates a given text from a language to another.
      *  If no source language is specified, automatic recognition is used. */
-    public static translate(query: string, toLang: string, fromLang: string = "auto"): void | Promise<string | void> {
+    public static async translate(query: string, toLang: string, fromLang: string = "auto"): Promise<string> {
         // Assert the languages have a value and are supported
-        if(!GoogleTranslate.isLanguageValid(toLang)) return;
-        if(fromLang !== "auto" && !GoogleTranslate.isLanguageValid(fromLang)) return;
+        if(!GoogleTranslate.isLanguageValid(toLang)) throw new Error(`Invalid target language "${toLang}"`);
+        if(fromLang !== "auto" && !GoogleTranslate.isLanguageValid(fromLang)) throw new Error(`Invalid source language "${fromLang}"`);
 
         // Call Google translate endpoint with query language and target language
-        return axios.post(
+        const result = await axios.post(
             `https://translate.google.it/_/TranslateWebserverUi/data/batchexecute?rpcids=MkEWBc&client=gtx&f.sid=-7075841764636485169&bl=boq_translate-webserver_20210215.17_p0&hl=it&soc-app=1&soc-platform=1&soc-device=1&_reqid=1944506&rt=c`,
             `f.req=%5B%5B%5B%22MkEWBc%22%2C%22%5B%5B%5C%22${encodeURI(query)}%5C%22%2C%5C%22${fromLang}%5C%22%2C%5C%22${toLang}%5C%22%2Ctrue%5D%2C%5Bnull%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&at=AD08yZm8SCo9gO2LTBwTCjgyWhJQ%3A1613560907885&`,
             { headers: { "content-type": "application/x-www-form-urlencoded;charset=UTF-8" }}
         )
 
-        // Finds the text to output in the... whatever this is supposed to be
-        .then(result => {
-            // Initialize output string to empty string
-            let output: string = "";
+        // Initialize output string to empty string
+        let output: string = "";
 
-            // I don't even know
-            (JSON.parse(JSON.parse(((result.data as string).substring(7).replace(/[0-9]{2,4}\n\[\[/g,`\n[[`)).split('\n\n')[0])[0][2])[1][0][0][5]).forEach((res: any) => output += res[0]+' ');
-            return output;
-        });
+        // Finds the text to output in the... whatever this is supposed to be
+        (JSON.parse(JSON.parse(((result.data as string).substring(7).replace(/[0-9]{2,4}\n\[\[/g,`\n[[`)).split('\n\n')[0])[0][2])[1][0][0][5]).forEach((res: any) => output += res[0]+' ');
+        return output;
     }
 }

@@ -4,10 +4,10 @@ import FavouritesMessage from "../../../classes/music/message/favouritesMessage"
 import MusicPlayer from "../../../classes/music/MusicPlayer";
 import UserRepository from "../../../classes/user/UserRepository";
 import ASong from "../../../classes/music/song/ASong";
-import { getSimpleMessageCallback } from "../../../events/onMessageCreate";
+import { defaultMessageErrorHandler, reactCallback } from "../../../events/onMessageCreate";
 
 /** Define command metadata and handler methods for text and slash commands. */
-const favouritesPlayCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string, index: number | undefined }, { content: string }> = {
+const favouritesPlayCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string, index: number | undefined }, void> = {
     // Command metadata for "help" command and general info about the command
     category: "Music", description: "Plays the selected song from the favourites.",
     aliases: ["favouritesplay", "favplay", "fp"],
@@ -26,7 +26,8 @@ const favouritesPlayCommandMetadata: CommandMetadata<{ i: Message | Interaction,
             if(!song) song = await UserRepository.getUserFavourite(userId, index);
 
             // If the index is too high or the user has no favourite songs, return
-            if(!song) return;
+            if(!song)
+                throw new Error("No songs found");
 
             // Add the retrieved song to the queue
             song.requestor = userId;
@@ -42,24 +43,28 @@ const favouritesPlayCommandMetadata: CommandMetadata<{ i: Message | Interaction,
                 });
             }
         }
+        callback();
     },
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, args, command) => {
+    onMessageCreateTransformer: async (msg, _content, args, command) => {
         const userId = msg.member?.id;
-        if(!userId) return;
+        if(!userId)
+            throw new Error("No userId found");
 
         // Retrieve index to be removed - if argument is not a number, return
         let index: string | number | undefined = args.pop();
         if(index !== undefined) {
             index = parseInt(index);
-            if(isNaN(index) || index < 1) return;
+            if(isNaN(index) || index < 1)
+                throw new Error("Invalid index");
             index = --index;
         }
 
-        command({ i: msg, userId, index }, getSimpleMessageCallback(msg))
-    }
+        await command({ i: msg, userId, index }, reactCallback(msg))
+    },
+    onMessageErrorHandler: defaultMessageErrorHandler,
 
     // TODO: slash command handler
 }

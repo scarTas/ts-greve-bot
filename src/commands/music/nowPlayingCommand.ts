@@ -1,31 +1,27 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
+import { defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
+import { defaultButtonInteractionCallback } from "../../events/onInteractionCreate";
 
-/** Define command metadata and handler methods for text and slash commands. */
 const nowPlayingCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
-    // Command metadata for "help" command and general info about the command
     category: "Music", description: "Shows the currently playing song",
     aliases: ["nowplaying", "np"], usage: "TODO",
     
-    // Actual core command with business logic implementation
     command: async ({ i }, callback) => {
-        MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
+        await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.nowPlayingMessage?.updateContent(musicPlayer)?.resend();
-        })
-        .then(() => callback());
+        });
+        //callback();
     },
 
-    // Transformer that parses the text input before invoking the core command,
-    // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, _args, command) => {
-        command({ i: msg }, () => {})
+    onMessageCreateTransformer: async (msg, _content, _args, command) => {
+        await command({ i: msg }, reactCallback(msg));
     },
+    onMessageErrorHandler: defaultMessageErrorHandler,
 
-    // Transformer that parses the interaction before invoking the core command,
-    // and handles the message reply with the provided output.
-    onButtonInteractionTransformer: (interaction, command) => {
-        command({ i: interaction }, () => interaction.deferUpdate())
+    onButtonInteractionTransformer: async (interaction, command) => {
+        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
     }
 
     // TODO: slash command handler

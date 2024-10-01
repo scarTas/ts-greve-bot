@@ -38,7 +38,7 @@ export default class UserRepository {
     /** Retrieves a user instance for a user mentioned in the message or a user
      *  which name matches with the first command argument.
      *! NOT A MONGODB METHOD, BUT A USER-RELATED METHOD NONETHELESS. */
-    public static getUserFromMessage = async (msg: Message, username: string): Promise<User | undefined> => {
+    public static getUserFromMessage = async (msg: Message, username?: string): Promise<User | undefined> => {
         // If there is no mentioned user, directly return the message author
         if (!username) return msg.author;
 
@@ -49,8 +49,7 @@ export default class UserRepository {
         // If there is no mention, manually search for the user in the server with
         // a query - if the user exists, return it
         return msg.guild?.members.fetch({ query: username, limit: 1 })
-            .then(member => member.first()?.user)
-            .catch( e => { Logger.error("Error retrieving user", e); return undefined; } );
+            .then(member => member.first()?.user);
     }
 
     public static async getUserFavourites(userId: string): Promise<ASong[] | undefined> {

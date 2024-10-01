@@ -16,11 +16,10 @@ export default class Wikipedia {
 
     /* ==== PUBLIC METHODS ================================================== */
     /** Initializes availableLanguages static property. */
-    public static intialize() {
-        // On startup, initialize availableLanguages Set
-        Wikipedia.getLanguages()
-            .then(languages => Wikipedia.availableLanguages = new Set(languages))
-            .catch(e => Logger.error("Error initializing languages: ", e));
+    public static async intialize() {
+        const languages = await Wikipedia.getLanguages();
+        Wikipedia.availableLanguages = new Set(languages);
+        Logger.info(`Successfully retrieved ${languages.length} Wikipedia languages`);
     }
 
     /** Checks whether the provided language is supported by Wikipedia or not. */
@@ -31,26 +30,25 @@ export default class Wikipedia {
     /** Returns the first {limit} Wikipedia
      *  articles that match the submitted query.
      *  If no limit is specified, only return the first result. */
-    public static searchArticleTitles(query: string, limit: number = 1, language: string = "en"): Promise<string[]> {
+    public static async searchArticleTitles(query: string, limit: number = 1, language: string = "en"): Promise<string[]> {
         Logger.info(`Query: ${query}, Languange: ${language}`)
 
         // Prepare API call query params
         const params = { ...Wikipedia.defParams, list: "search", srsearch: query, limit }
 
         // Call Wikipedia search API to retrieve results from given query
-        return axios.get(`https://${language}.wikipedia.org/w/api.php`, { params })
+        const { data } = await axios.get(`https://${language}.wikipedia.org/w/api.php`, { params });
 
-        // Loop through all the results and only extract the title of each article
-        .then(r => (r.data.query.search as [any])
+        // Loop through the results and only extract the title of each article
+        return (data.query.search as [any])
             .filter(e => !e.snippet?.includes(" may refer to: ") )
-            .map(e => e.title)
-        );
+            .map(e => e.title);
     }
 
     /** Composes the final Wikipedia article URI from the title and the language.
      *  If no language is specified, english is used. */
     public static getArticleUri(title: string, language: string = "en"): string {
-        if(!title) throw Error("No results found");
+        if(!title) throw Error("No article found");
 
         // Replace title spaces with underscores and encode to URI
         const encodedTitle: string = encodeURIComponent(title.replace(/ /g, '_'));
@@ -76,5 +74,3 @@ export default class Wikipedia {
         )
     }
 }
-
-Wikipedia.intialize();

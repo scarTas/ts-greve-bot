@@ -1,35 +1,37 @@
-import { getSimpleMessageCallback } from "../../events/onMessageCreate";
+import { defaultMessageCallback, defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
 import Logger from "../../classes/logging/Logger";
 
-/** Define command metadata and handler methods for text and slash commands. */
-const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, { content: string }> = {
-    // Command metadata for "help" command and general info about the command
+const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, void> = {
     category: "Music", description: "Changes the volume of the music.",
     aliases: ["volume", "v"], usage: "TODO",
     
-    // Actual core command with business logic implementation
     command: async ({ msg, volume }, callback) => {
-        MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+        await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
             musicPlayer.setVolume(volume);
         });
+        callback();
     },
 
-    // Transformer that parses the text input before invoking the core command,
-    // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, args, command) => {
+    onMessageCreateTransformer: async (msg, _content, args, command) => {
 
         // Retrieve index to be removed - if argument is not a number, return
-        let volume: string | number | undefined = args.pop();
-        if(!volume) return;
+        let volume: string | number | undefined = args.shift();
+        if(!volume)
+            throw new Error("No volume specified");
+
         volume = parseFloat(volume.replace(',', '.'));
-        if(isNaN(volume) || volume < 0) return;
+        if(isNaN(volume) || volume < 0)
+            throw new Error("Invalid volume specified");
+
         Logger.debug("New volume: "+volume);
 
-        command({ msg, volume }, getSimpleMessageCallback(msg))
-    }
+        await command({ msg, volume }, reactCallback(msg))
+    },
+
+    onMessageErrorHandler: defaultMessageErrorHandler,
 
     // TODO: slash command handler
 }

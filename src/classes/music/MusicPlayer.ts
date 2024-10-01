@@ -141,7 +141,7 @@ class MusicPlayer extends MusicQueue {
 
     /** Parses an uri into ASong instances that can be played on the MusicPlayer.
      *  If the uri is invalid or not supported, undefined is returned. */
-    public static async getSong(uri: string): Promise<ASong[] | undefined> {
+    public static async getSong(uri: string): Promise<ASong[]> {
 
         let songs: ASong[] | undefined;
         if(songs = await YoutubeSong.fromUri(uri))          return songs;
@@ -153,8 +153,8 @@ class MusicPlayer extends MusicQueue {
         // TODO: SoundCloud
         // TODO: YewTube (Youtube mature content that needs authentication)
 
-        // Uri is not supported, return
-        return undefined;
+        // Uri is not supported, throw
+        throw new Error("Invalid or unhandled uri");
     }
 
     /* ==== CONSTRUCTOR ===================================================== */

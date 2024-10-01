@@ -1,6 +1,4 @@
 import { AttachmentBuilder, EmbedBuilder, Message } from "discord.js";
-import { readdir } from 'fs/promises';
-import * as path from 'path';
 import QueryMessage from "../classes/music/message/queryMessage";
 import ASong from "../classes/music/song/ASong";
 import MusicPlayer from "../classes/music/MusicPlayer";
@@ -9,11 +7,14 @@ import { CommandMetadata } from "../commands/types";
 import Logger from "../classes/logging/Logger";
 import YoutubePlaylistSong from "../classes/music/song/youtube/YoutubePlaylistSong";
 import UserRepository from "../classes/user/UserRepository";
+import { commandMetadataMap } from "../commands/registration";
 
+/** Default prefix that can be used by users to activate text commands.
+ *  If default prefix is not defined in the environment, use "ham". */
 const DEFAULT_PREFIX: string = process.env.PREFIX ?? "ham";
 
+/** Before exporting, wrap event logic in context init for versbose logging. */
 export default function (msg: Message): void {
-    // Before executing any logic, initialize context for verbose logging
     Context.initialize({ userId: msg.author.username, serverId: msg.guildId || undefined }, () => onMessageCreate(msg));
 }
 
@@ -22,44 +23,46 @@ async function onMessageCreate(msg: Message): Promise<void> {
     // If the message author is a bot, ignore
     if(msg.author.bot) return;
 
-    // TODO: handle youtube selection
-    // Check if the user is choosing a track from the YoutubeNavigator
-    //if(checkYoutube(msg)?.catch(e => Logger.error("YoutubeNavigator selection error", e))) return;   
-
-    // Normalize message content
+    // Normalize message content for better parsing
     const lowerCaseContent: string = msg.content.toLowerCase();
 
     // Youtube Query: if the message content is a number and there is a pending
     // queryMessage, try to play the song on the musicPlayer
-    const number: number = parseInt(lowerCaseContent);
-    if(!isNaN(number) && number > 0) {
+    const index: number = parseInt(lowerCaseContent);
+    if(!isNaN(index) && index > 0) {
+
+        // Try to retrieve current queryMessage (if any) with Youtube results.
+        //If there is no queryMessage, the callback is not called.
         QueryMessage.get(msg, async (queryMessage: QueryMessage) => {
-            const song: ASong | undefined = queryMessage.getSong(number - 1);
-            const requestor = msg.member?.id;
-            if(song) {
 
-                let songs: ASong[];
-                if(song.type === ASong.SongType.YOUTUBE_PLAYLIST) {
-                    // URI is actually the playlist ID, not the URI
-                    songs = await YoutubePlaylistSong.getSongs(song.id);
-                    songs.forEach(s => s.requestor = requestor)
-                } else {
-                    song.requestor = requestor;
-                    songs = [song];
-                }
+            // Retrieve song at the selected index
+            const song: ASong | undefined = queryMessage.getSong(index - 1);
 
-                MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-                    await musicPlayer.add(...songs);
-                    await queryMessage.destroy();
-                });
-            }
+            // If index is invalid, do nothing
+            if(!song) return;
+
+            // If the queried song is a playlist, convert it to song array
+            const songs: ASong[] = song.type === ASong.SongType.YOUTUBE_PLAYLIST
+                ? await YoutubePlaylistSong.getSongs(song.id)
+                : [song];
+
+            // Add user's id to song(s) metadata
+            songs.forEach(s => s.requestor = msg.member?.id)
+
+            // Retrieve current instance of musicPlayer (or create it and
+            // add song(s) to the queue 
+            await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+                await musicPlayer.add(...songs);
+            });
+
+            // Delete queryMessage after adding the song to the player
+            await queryMessage.destroy();
         });
-        return;
     }
 
     // If the user has a custom prefix set, retrieve it - always use the default
-    let prefix = DEFAULT_PREFIX;
     const customPrefix = await UserRepository.getUserPrefix(msg.author.id);
+    let prefix = DEFAULT_PREFIX;
 
     // Compose regex to be used to detect and replace prefix from the message.
     // Put longer prefix first so that, if the custom prefix starts with the
@@ -88,26 +91,29 @@ async function onMessageCreate(msg: Message): Promise<void> {
         // If there is no command, send default message
         const commandName: string | undefined = args.shift()?.toLocaleLowerCase();
         if(!commandName) 
-            return getSimpleMessageCallback(msg)({ content: "Cazzo vuoi?" });
+            return defaultMessageCallback(msg)({ content: "Cazzo vuoi?" });
 
         // Remove command name and space from message content before passing it
         content = content.replace( new RegExp(`^(${commandName})\\s?`, "i"), "");
 
         // Search for the corresponding metadata and invoke handler method to
-        // correctly prepare input parameters and handle callbacks
-        const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
+        // correctly prepare input parameters and handle exceptions & callbacks
+        const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadataMap[commandName];
         if(commandMetadata?.onMessageCreateTransformer) {
             Context.set("command-id", commandMetadata.aliases[0]);
             Logger.info(msg.content);
-            return commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
+            try {
+                return await commandMetadata.onMessageCreateTransformer(msg, content, args, commandMetadata.command);
+            } catch(e) {
+                return await commandMetadata.onMessageErrorHandler!(msg, e as Error);
+            }
         }
-        
     }
     
     // If message is not a command, start searching for insults or funny replies
     else {
         const reply: string | undefined = getInsult(lowerCaseContent);
-        if(reply) getSimpleMessageCallback(msg)({ content: reply });
+        if(reply) defaultMessageCallback(msg)({ content: reply });
     }
 }
 
@@ -145,48 +151,27 @@ function getInsult(content: string): string | undefined {
 /** The callback function is generic and only takes the command response
  *  as parameter - in order to use the message, bring it into the callback
  *  method scope creating the function when needed. */
-export function getSimpleMessageCallback(msg: Message): (reply: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[] }) => void {
+export function defaultMessageCallback(msg: Message): (reply: { content?: string, embeds?: EmbedBuilder[], files?: AttachmentBuilder[] }) => void {
     return function callback(reply: { content?: string, embeds?: EmbedBuilder[] }): void {
-        msg.reply(reply).catch(e => Logger.error("Message reply error: " + e));
+        msg.reply(reply)
+            .catch(e => Logger.error("defaultMessageCallback error", e));
     }
 }
 
-/** Define command-name / metadata map.
- *  The map is used when events such as message creation, slash or interactions
- *  are triggered. These events call the handler methods to parse the input data
- *  and feed them to the actual co command. */
-export const commandMetadatas: { [k: string]: CommandMetadata<any, any> } = {};
-
-
-/** Dynamically retrieve all exported modules from given path (recursively). */
-async function loadDefaultExports(dir: string): Promise<any[]> {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const modules = await Promise.all(entries.map(async (entry) => {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      return loadDefaultExports(fullPath);
-    } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.js'))) {
-      const module = await import(fullPath);
-      return module.default;
+/** Similar to defaultMessageCallback, but only reacts with an emoji when the
+ *  command has been correctly executed. */
+export function reactCallback(msg: Message): () => void {
+    return function callback(): void {
+        msg.react("🤝")
+            .catch(e => Logger.error("reactCallback error", e));
     }
-  }));
-
-  // Flatten the array since loadDefaultExports can return nested arrays
-  return modules.flat();
 }
 
-export async function registerCommands() {
-    const directoryPath = path.resolve(__dirname, '../commands');
-    const defaultExportsArray: CommandMetadata<any, any>[] = await loadDefaultExports(directoryPath);
-  
-    for(const commandMetadata of defaultExportsArray) {
-        // Ignore non-command files
-        if(!commandMetadata?.aliases) continue;
-
-        for(const alias of commandMetadata.aliases) {
-            commandMetadatas[alias] = commandMetadata;
-        }
-    }
-
-    Logger.debug("All commands registered");
+/** Default error handler method to be used for commands that can be executed
+ *  via the onMessageCreateTransformer.
+ *  It reacts to the original user message with an emoji. */
+export function defaultMessageErrorHandler(msg: Message, e: Error): void {
+    Logger.error("Text command execution error\n", e)
+    msg.react("902680070018175016") //  Old emoji: "❌"
+        .catch(e => Logger.error("defaultMessageErrorHandler error", e));
 }

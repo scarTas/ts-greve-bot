@@ -1,5 +1,5 @@
-import { Interaction } from "discord.js";
-import { commandMetadatas } from "./onMessageCreate";
+import { ButtonInteraction, CommandInteraction, Interaction } from "discord.js";
+import { commandMetadataMap } from "../commands/registration";
 import Context from "../classes/logging/Context";
 import { CommandMetadata } from "../commands/types";
 import Logger from "../classes/logging/Logger";
@@ -20,13 +20,20 @@ async function onInteractionCreate(interaction: Interaction): Promise<void> {
 
         // Search for the corresponding metadata and invoke handler method to
         // correctly prepare input parameters and handle callbacks
-        const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadatas[commandName];
+        const commandMetadata: CommandMetadata<any, any> | undefined = commandMetadataMap[commandName];
         if(commandMetadata?.onButtonInteractionTransformer) {
             Context.set("command-id", commandMetadata.aliases[0]);
             Logger.info(commandName);
-            return commandMetadata.onButtonInteractionTransformer(interaction, commandMetadata.command);
+            return await commandMetadata.onButtonInteractionTransformer(interaction, commandMetadata.command);
+            // TODO: handle exceptions
         } else {
             await interaction.deferUpdate();
         }
+    }
+}
+
+export function defaultButtonInteractionCallback(interaction: ButtonInteraction): () => void {
+    return function callback(): void {
+        interaction.deferUpdate();
     }
 }

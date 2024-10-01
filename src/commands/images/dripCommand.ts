@@ -1,53 +1,50 @@
 import { AttachmentBuilder, User } from "discord.js";
 import { CommandMetadata } from "../types";
-import { getSimpleMessageCallback } from "../../events/onMessageCreate";
+import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
 import Images from "../../classes/image/images";
-import Logger from "../../classes/logging/Logger";
 import UserRepository from "../../classes/user/UserRepository";
 
+/** Regex to be used to detect if an argument is a file uri or not. */
 export const fileRegex = /^https?:\/\/.*$/;
+/** Base PNG with the dripping figure image. */
 const baseImage: string = "./assets/images/drip.png";
+/** Default name for the Discord attachment (final image). */
+const imageName: string = "drip.png";
 
-/** Define command metadata and handler methods for text and slash commands. */
 const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
-    // Command metadata for "help" command and general info about the command
     category: "Images", description: "HE REALLY BE DRIPPIN DOE", aliases: ["drip"],
     usage: "`ham drip` // Drips yourself\
     \n`ham drip @Emre` // Drips the shit out of Emre\
     \n`ham drip emre` // Same",
 
-    // Actual core command with business logic implementation
-    command: ({ user, file }, callback) => {
-
+    command: async ({ user, file }, callback) => {
         // Use input file or retrieve profile picture from input user
         // If no argument is defined, don't do anything
-        const path: string | undefined = file ?? user?.displayAvatarURL({ extension: "png", size: 256 });
-        if(!path) return;
+        const path: string = file || user!.displayAvatarURL({ extension: "png", size: 256 });
 
         // Add provided image to drip base image and invoke callback on success
-        Images.overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
-            .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: "overlap.png" }) ] } ))
-            .catch(e => Logger.warn("Error overlapping images", e) );
+        await Images.overlap(baseImage, [{ path, xPos: 210, yPos: 80, xRes: 256, yRes: 256, round: true }])
+            .then(buffer => callback( { files: [ new AttachmentBuilder(buffer, { name: imageName }) ] } ));
     },
 
-    // Transformer that parses the text input before invoking the core command,
-    // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, args, command) => {
-        const arg = args[0];
+    onMessageCreateTransformer: async (msg, _content, args, command): Promise<void> => {
+        const arg: string | undefined = args.shift();
 
         // If the first argument is a file path, directly use it
-        if(fileRegex.test(arg)) {
-            command({ file: arg }, getSimpleMessageCallback(msg))
-        }
+        if(arg && fileRegex.test(arg))
+            return await command({ file: arg }, defaultMessageCallback(msg));
 
         // Try to retrieve the mentioned or written user from the first argument
-        UserRepository.getUserFromMessage(msg, arg)
+        const user: User | undefined = await UserRepository.getUserFromMessage(msg, arg);
+        if(!user)
+            throw new Error("User not found");
+
         // If the user is successfully retrieved (or it is the author itself),
         // proceed with the embed creation logic
-        .then( user => {
-            user && command({ user }, getSimpleMessageCallback(msg))
-        })
-    }
+        await command({ user }, defaultMessageCallback(msg));
+    },
+
+    onMessageErrorHandler: defaultMessageErrorHandler
 
     // TODO: slash command handler
 }

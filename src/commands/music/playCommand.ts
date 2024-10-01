@@ -1,4 +1,4 @@
-import { getSimpleMessageCallback } from "../../events/onMessageCreate";
+import { defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
@@ -8,16 +8,13 @@ import QueryMessage from "../../classes/music/message/queryMessage";
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
 
-/** Define command metadata and handler methods for text and slash commands. */
 const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?: string }, { content: string }> = {
-    // Command metadata for "help" command and general info about the command
     category: "Music", description: "Plays a song in your voice channel, loading \
     the url (if supported) or searching on YouTube.\nCurrently, the supported \
     websites are Youtbe and Spotify (also, direct resources URLs such as MP3); \
     SoundCloud support is coming soon.",
     aliases: ["play", "p"], usage: "TODO",
 
-    // Actual core command with business logic implementation
     command: async ({ msg, uri, query }, callback) => {
 
         // If user wants to play from URL, check for the website format first
@@ -26,13 +23,11 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
         // Determine url type and retrieve song - if url is invalid, throw error
         if (uri) {
             songs = await MusicPlayer.getSong(uri);
-            // TODO: define error message
-            if (songs === undefined) return;
 
             songs.forEach(s => s.requestor = msg.member?.id)
 
             // If the url is valid, add to MusicPlayer queue and play
-            MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+            await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
                 await musicPlayer.add(...songs!);
             });
         }
@@ -40,26 +35,27 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
         // If input is a query, start youtube search
         //! If another queryMessage was present, it is removed
         else if(query) {
-            QueryMessage.get(msg, queryMessage => {
-                queryMessage
-                    .updateContent()
-                    .then(m => m?.send());
+            await QueryMessage.get(msg, async (queryMessage) => {
+                await queryMessage.updateContent();
+                await queryMessage.send();
             }, query);
         }
     },
 
     // Transformer that parses the text input before invoking the core command,
     // and handles the message reply with the provided output.
-    onMessageCreateTransformer: (msg, _content, args, command) => {
-        if (!args.length) return;
+    onMessageCreateTransformer: async (msg, _content, args, command) => {
+        if (!args.length)
+            throw new Error("No song specified");
 
         // Check if the user typed a URL or a simple text query
         let uri = undefined, query = undefined;
         if (uriRegex.test(args[0])) uri = args[0];
         else query = args.join(" ");
 
-        command({ msg, uri, query }, getSimpleMessageCallback(msg))
-    }
+        await command({ msg, uri, query }, reactCallback(msg))
+    },
+    onMessageErrorHandler: defaultMessageErrorHandler,
 
     // TODO: slash command handler
 }
