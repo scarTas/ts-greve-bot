@@ -1,7 +1,7 @@
 import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../../classes/music/MusicPlayer";
-import { defaultButtonInteractionCallback } from "../../../events/onInteractionCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../../events/onInteractionCreate";
 
 const queueNextCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "When the queue message is displayed, go to the next page",
@@ -9,15 +9,18 @@ const queueNextCommandMetadata: CommandMetadata<{ i: Message | Interaction }, vo
     
     hidden: true,
 
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.queueMessage?.next(musicPlayer)?.update();
         });
-        callback();
     },
 
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
+    onButton: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: deferUpdateResponseTransformer,
+        errorHandler: deferUpdateErrorHandler
     }
 }
 export default queueNextCommandMetadata;

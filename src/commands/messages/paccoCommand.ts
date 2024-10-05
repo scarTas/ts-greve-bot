@@ -1,19 +1,19 @@
-import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
 const paccoCommandMetadata: CommandMetadata<null, { content: string }> = {
     category: "Messages", description: "Pacco Amazon 😳", aliases: ["pacco"],
     usage: "`ham pacco`",
     
-    command: (_input, callback) => {
-        callback({ content: ":billed_cap:\n:flushed:      :selfie_tone5:\n:coat::package:\n:shorts:\n:hiking_boot:" });
+    command: () => {
+        return { content: ":billed_cap:\n:flushed:      :selfie_tone5:\n:coat::package:\n:shorts:\n:hiking_boot:" };
     },
     
-    onMessageCreateTransformer: (msg, _content, _args, command) => {
-        command(null, defaultMessageCallback(msg));
-    },
-
-    onMessageErrorHandler: defaultMessageErrorHandler,
+    onMessage: {
+        requestTransformer: (_msg, _content, _args) => null,
+        responseTransformer: msgReplyResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

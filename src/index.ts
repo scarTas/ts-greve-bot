@@ -3,6 +3,8 @@ import Logger from "./classes/logging/Logger";
 import onReady from './events/onReady';
 import onMessageCreate from './events/onMessageCreate';
 import onInteractionCreate from './events/onInteractionCreate';
+import onMessageReactionAdd from './events/onMessageReactionAdd';
+import onVoiceStateUpdate from './events/onVoiceStateUpdate';
 
 /* ==== TYPE DEFINITION ===================================================== */
 /** Constant for all embeds sent, but not meaningful as bot instance propery. */
@@ -88,9 +90,17 @@ export default class HaramLeotta extends Client {
         this.on("messageCreate", onMessageCreate);
         Logger.info("Listening on event 'messageCreate'");
 
+        // On reaction added to a (cached) message, execute every time
+        this.on("messageReactionAdd", onMessageReactionAdd);
+        Logger.info("Listening on event 'messageReactionAdd'");
+
         // On message created (sent), execute every time  
         this.on("interactionCreate", onInteractionCreate);
         Logger.info("Listening on event 'interactionCreate'");
+
+        // On message created (sent), execute every time  
+        this.on("voiceStateUpdate", onVoiceStateUpdate);
+        Logger.info("Listening on event 'voiceStateUpdate'");
     }
 
     /** Update bot custom activity and yellow status (presence) on startup */

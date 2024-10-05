@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { CommandMetadata } from "../types";
-import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 import { commandMetadataMap, commandMetadatas } from "../registration";
 
@@ -10,7 +10,7 @@ const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedB
     usage: "`ham help` // Displays complete command list\
     \n`ham help drip` // Displays info and usage of `drip` command",
     
-    command: ({ command }, callback) => {
+    command: ({ command }) => {
         const embed = new EmbedBuilder()
             .setColor(HaramLeotta.get().embedColor);
     
@@ -54,15 +54,14 @@ const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedB
                 );
         }
     
-        // Join arguments with clapping emoji and call callback
-        callback( { embeds: [ embed ] } );
+        return { embeds: [ embed ] };
     },
 
-    onMessageCreateTransformer: (msg, _content, args, command) => {
-        command({ command: args[0] }, defaultMessageCallback(msg))
-    },
-
-    onMessageErrorHandler: defaultMessageErrorHandler
+    onMessage: {
+        requestTransformer: (_msg, _content, args) => { return { command: args[0] } },
+        responseTransformer: msgReplyResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

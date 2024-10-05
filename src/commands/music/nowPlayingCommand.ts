@@ -1,27 +1,24 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
-import { defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
-import { defaultButtonInteractionCallback } from "../../events/onInteractionCreate";
+import {  msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 
 const nowPlayingCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shows the currently playing song",
     aliases: ["nowplaying", "np"], usage: "TODO",
     
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.nowPlayingMessage?.updateContent(musicPlayer)?.resend();
         });
-        //callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, _args, command) => {
-        await command({ i: msg }, reactCallback(msg));
-    },
-    onMessageErrorHandler: defaultMessageErrorHandler,
-
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
+    onMessage: {
+        requestTransformer: (msg, _content, _args) => {
+            return { i: msg };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
     }
 
     // TODO: slash command handler

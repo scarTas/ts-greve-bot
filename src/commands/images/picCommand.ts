@@ -1,6 +1,6 @@
 import { EmbedBuilder, User } from "discord.js";
 import { CommandMetadata } from "../types";
-import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 import UserRepository from "../../classes/user/UserRepository";
 
@@ -10,29 +10,28 @@ const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder
     \n`ham pic @Emre` // Sends Emre's propic\
     \n`ham pic emre` // Same",
 
-    command: ({ user }, callback) => {
+    command: ({ user }) => {
         const embed = new EmbedBuilder()
             .setColor(HaramLeotta.get().embedColor)
             .setAuthor({name: user.displayName, iconURL: user.avatarURL()! })
             .setImage(user.displayAvatarURL({ extension: "webp", forceStatic: true, size: 4096 }))
     
-        callback( { embeds: [ embed ] } );
+        return { embeds: [ embed ] };
     },
 
-    onMessageCreateTransformer: async (msg, _content, args, command) => {
-        const arg: string | undefined = args.shift();
-        
-        // Try to retrieve the mentioned or written user from the first argument
-        const user = await UserRepository.getUserFromMessage(msg, arg);
-        if(!user)
-            throw new Error("User not found");
-
-        // If the user is successfully retrieved (or it is the author itself),
-        // proceed with the embed creation logic
-        command({ user }, defaultMessageCallback(msg));
-    },
-
-    onMessageErrorHandler: defaultMessageErrorHandler
+    onMessage: {
+        requestTransformer: async (msg, _content, args) => {
+            const arg: string | undefined = args.shift();
+            
+            // Try to retrieve mentioned or written user from first argument
+            const user = await UserRepository.getUserFromMessage(msg, arg);
+            if(!user) throw new Error("User not found");
+    
+            return { user };
+        },
+        responseTransformer: msgReplyResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

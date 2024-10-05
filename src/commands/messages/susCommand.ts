@@ -1,4 +1,4 @@
-import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
 /** Collections of "sus" links that can be sent when the command is invoked. */
@@ -12,19 +12,19 @@ const susCommandMetadata: CommandMetadata<null, { content: string }> = {
     category: "Messages", description: "SUS!! SUSSY BAKA!!!!", aliases: ["sus"],
     usage: "`ham sus`",
 
-    command: (_input, callback) => {
+    command: () => {
         // Generate number between 0 (inclusive) and link pool length (exclusive)
         const rand: number = Math.floor(Math.random() * links.length);
     
         // Retrieve link from random index and invoke callback
-        callback( { content: links[ rand ] });
+        return { content: links[ rand ] };
     },
 
-    onMessageCreateTransformer: (msg, _content, _args, command) => {
-        command(null, defaultMessageCallback(msg))
-    },
-
-    onMessageErrorHandler: defaultMessageErrorHandler
+    onMessage: {
+        requestTransformer: (_msg, _content, _args) => null,
+        responseTransformer: msgReplyResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

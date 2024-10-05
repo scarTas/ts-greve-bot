@@ -1,4 +1,4 @@
-import { defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 import { Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
@@ -7,17 +7,19 @@ const shuffleCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
     category: "Music", description: "Shuffles the queue songs.",
     aliases: ["shuffle", "sh"], usage: "TODO",
     
-    command: async ({ msg }, callback) => {
+    command: async ({ msg }) => {
         await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
             musicPlayer.shuffle();
         });
-        callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, _args, command) => {
-        await command({ msg }, reactCallback(msg))
-    },
-    onMessageErrorHandler: defaultMessageErrorHandler,
+    onMessage: {
+        requestTransformer: (msg, _content, _args) => {
+            return { msg };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

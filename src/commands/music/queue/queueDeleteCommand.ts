@@ -1,7 +1,7 @@
 import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../../classes/music/MusicPlayer";
-import { defaultButtonInteractionCallback } from "../../../events/onInteractionCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../../events/onInteractionCreate";
 
 const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Deletes the displayed queue message",
@@ -9,15 +9,18 @@ const queueDeleteCommandMetadata: CommandMetadata<{ i: Message | Interaction }, 
     
     hidden: true,
 
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.queueMessage?.delete();
         })
-        callback();
     },
 
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
+    onButton: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: deferUpdateResponseTransformer,
+        errorHandler: deferUpdateErrorHandler
     }
 }
 export default queueDeleteCommandMetadata;

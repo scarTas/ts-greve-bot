@@ -1,26 +1,33 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
-import { defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../events/onInteractionCreate";
 
 const backCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Plays the previous song in the queue.",
     aliases: ["back", "b"], usage: "TODO",
     
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.back();
         });
-        callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, _args, command) => {
-        await command({ i: msg }, () => {})
+    onMessage: {
+        requestTransformer: (msg, _content, _args) => {
+            return { i: msg };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
     },
-    onMessageErrorHandler: defaultMessageErrorHandler,
     
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, () => interaction.deferUpdate())
+    onButton: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: deferUpdateResponseTransformer,
+        errorHandler: deferUpdateErrorHandler
     }
 
     // TODO: slash command handler

@@ -1,27 +1,33 @@
 import { CommandMetadata } from "../../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../../classes/music/MusicPlayer";
-import { defaultButtonInteractionCallback } from "../../../events/onInteractionCreate";
-import { defaultMessageErrorHandler, reactCallback } from "../../../events/onMessageCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../../events/onInteractionCreate";
+import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
 
 const queueCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shows the playlist currently playing",
     aliases: ["queue", "q"], usage: "TODO",
     
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.queueMessage?.first(musicPlayer)?.resend();
         });
-        //callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, _args, command) => {
-        await command({ i: msg }, reactCallback(msg));
+    onMessage: {
+        requestTransformer: (msg, _content, _args) => {
+            return { i: msg };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
     },
-    onMessageErrorHandler: defaultMessageErrorHandler,
 
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
+    onButton: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: deferUpdateResponseTransformer,
+        errorHandler: deferUpdateErrorHandler
     }
 
     // TODO: slash command handler

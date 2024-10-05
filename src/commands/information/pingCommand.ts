@@ -1,20 +1,20 @@
 import HaramLeotta from "../..";
-import { defaultMessageCallback, defaultMessageErrorHandler } from "../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
 const pingCommandMetadata: CommandMetadata<null, { content: string }> = {
     category: "Information", description: "WebSocket ping in milliseconds.",
     aliases: ["ping"], usage: "`ham ping`",
 
-    command: (_input, callback) => {
-        callback({ content: `Pong! (${HaramLeotta.get().ws.ping}ms)` });
+    command: () => {
+        return { content: `Pong! (${HaramLeotta.get().ws.ping}ms)` };
     },
 
-    onMessageCreateTransformer: (msg, _content, _args, command) => {
-        command(null, defaultMessageCallback(msg))
-    },
-
-    onMessageErrorHandler: defaultMessageErrorHandler
+    onMessage: {
+        requestTransformer: (_msg, _content, _args) => null,
+        responseTransformer: msgReplyResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

@@ -71,9 +71,13 @@ class MusicPlayer extends MusicQueue {
         // Check if the member is found and has a voice channel
         const channel: VoiceBasedChannel | undefined | null = member?.voice.channel;
 
-        // If member not found or has no voice channel, return
-        if (!channel) return;
-
+        // If member is in voiceChannel in which bot has permissions, return it
+        if(!channel || !MusicPlayer.checkVoiceChannelPermissions(channel)) {
+            throw new Error("Bot has no permissions on the voice channel");
+        }
+        return channel;
+        
+        /*
         // Retrieve voice channel permissions for "me" (bot user)
         const me = channel.guild.members.me;
         if (!me) return;
@@ -82,7 +86,19 @@ class MusicPlayer extends MusicQueue {
         // Check if bot can join and speak in the voice channel
         if (!permissions.has(PermissionsBitField.Flags.Connect)) return;
         if (!permissions.has(PermissionsBitField.Flags.Speak)) return;
-        return channel;
+        return channel;*/
+    }
+
+    public static checkVoiceChannelPermissions(channel: VoiceBasedChannel) {
+        // Retrieve voice channel permissions for "me" (bot user)
+        const me = channel.guild.members.me;
+        if (!me) return false;
+        const permissions = channel.permissionsFor(me);
+    
+        // Check if bot can join and speak in the voice channel
+        if (!permissions.has(PermissionsBitField.Flags.Connect)) return false;
+        if (!permissions.has(PermissionsBitField.Flags.Speak)) return false;
+        return true;
     }
 
     /** Checks whether the cpmmand sent by the user actually is in a valid text
@@ -254,23 +270,21 @@ class MusicPlayer extends MusicQueue {
         // Instance new voice channel connection
         this.connection = joinVoiceChannel({
             channelId: this.voiceChannel.id, guildId: this.voiceChannel.guildId,
-            adapterCreator: (this.voiceChannel.guild.voiceAdapterCreator)
+            adapterCreator: this.voiceChannel.guild.voiceAdapterCreator as any
         });
 
         this.connection.on("stateChange", async (_, newState) => {
             Logger.trace("Connection state changed to " + newState.status);
 
-            // Someone moved or disconnected the bot - destroy connection
+            /*// Someone moved or disconnected the bot - destroy connection
             if (
                 newState.status === VoiceConnectionStatus.Destroyed ||
                 newState.status === VoiceConnectionStatus.Disconnected
-            ) this.disconnect();
+            ) this.disconnect();*/
         });
 
         this.connection.on("error", e => {
             Logger.error("Connection error", e);
-            // TODO: define error behaviour
-            //this.disconnect();
             this.destroy();
         });
 
@@ -367,6 +381,7 @@ class MusicPlayer extends MusicQueue {
         this.player.removeAllListeners();
         this.connection?.removeAllListeners();
         MusicPlayer.cache.delete(this.groupId);
+        Logger.info("MusicPlayer destroyed");
     }
 
     /** Updates the content of nowPlayingMessage and queueMessage messages. */

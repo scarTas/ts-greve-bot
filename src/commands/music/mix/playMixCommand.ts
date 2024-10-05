@@ -1,4 +1,4 @@
-import { defaultMessageErrorHandler, reactCallback } from "../../../events/onMessageCreate";
+import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
 import { Message } from "discord.js";
 import MusicPlayer from "../../../classes/music/MusicPlayer";
 import YoutubeSong from "../../../classes/music/song/youtube/YoutubeSong";
@@ -10,7 +10,7 @@ const playMixCommandMetadata: CommandMetadata<{ msg: Message, uri: string }, voi
     voice channel.",
     aliases: ["playmix", "pm"], usage: "TODO",
 
-    command: async ({ msg, uri }, callback) => {
+    command: async ({ msg, uri }) => {
 
         // Check if the Youtube Video is valid
         const videoId = YoutubeSong.getVideoId(uri);
@@ -25,16 +25,17 @@ const playMixCommandMetadata: CommandMetadata<{ msg: Message, uri: string }, voi
         await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.add(song);
         });
-        callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, args, command) => {
-        if (!args.length)
-            throw new Error("No song specified");
-
-        await command({ msg, uri: args[0] }, reactCallback(msg));
-    },
-    onMessageErrorHandler: defaultMessageErrorHandler,
+    onMessage: {
+        requestTransformer: (msg, _content, args) => {
+            if (!args.length) throw new Error("No song specified");
+    
+            return { msg, uri: args[0] };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
+    }
 
     // TODO: slash command handler
 }

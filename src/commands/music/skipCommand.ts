@@ -1,28 +1,34 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
-import { defaultMessageErrorHandler, reactCallback } from "../../events/onMessageCreate";
-import { defaultButtonInteractionCallback } from "../../events/onInteractionCreate";
+import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../events/onInteractionCreate";
 
 const skipCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "skips the current song in the queue, \
     playing the next one (if any).",
     aliases: ["skip", "s"], usage: "TODO",
     
-    command: async ({ i }, callback) => {
+    command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.skip();
         });
-        callback();
     },
 
-    onMessageCreateTransformer: async (msg, _content, _args, command) => {
-        await command({ i: msg }, reactCallback(msg));
+    onMessage: {
+        requestTransformer: (msg, _content, _args) => {
+            return { i: msg };
+        },
+        responseTransformer: msgReactResponseTransformer,
+        errorHandler: msgReactErrorHandler
     },
-    onMessageErrorHandler: defaultMessageErrorHandler,
 
-    onButtonInteractionTransformer: async (interaction, command) => {
-        await command({ i: interaction }, defaultButtonInteractionCallback(interaction));
+    onButton: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: deferUpdateResponseTransformer,
+        errorHandler: deferUpdateErrorHandler
     }
 
     // TODO: slash command handler

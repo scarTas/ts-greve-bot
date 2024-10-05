@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, TextBasedChannel, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextBasedChannel, TextChannel } from "discord.js";
 import DynamicMessage from "./dynamicMessage";
 import MusicPlayer from "../MusicPlayer";
 import ASong from "../song/ASong";
@@ -52,7 +52,7 @@ export default class QueryMessage extends DynamicMessage {
      *  QueryMessage instances can only retrieved and used with this method,
      *  which locks the instance used to avoid concurrency.
      *  After the callback function is completed, the lock is free'd. */
-    public static async get(msg: Message | Interaction, callback: (message: QueryMessage) => any, query?: string): Promise<void> {
+    public static async get<O>(msg: Message | Interaction, callback: (message: QueryMessage) => O, query?: string): Promise<O | void> {
         // Retrieve server id + user id as cache lock policy.
         // If there is no guild, return; the message was probably sent in PMs.
         if (!msg.guild?.id || !msg.member?.user.id) return;
@@ -60,22 +60,22 @@ export default class QueryMessage extends DynamicMessage {
 
         // Check for textChannel - if none, return
         const textChannel: TextChannel | undefined = MusicPlayer.checkTextChannelPermissions(msg);
-        if(!textChannel) return;
+        if (!textChannel) return;
 
         // Retrieve musicPlayer and execute requested logic safely (with locks)
-        QueryMessage.locking(groupId, async () => {
+        return await QueryMessage.locking(groupId, async () => {
             // Retrieve message from cache (exit if not present)
             let queryMessage: QueryMessage | undefined = QueryMessage.cache.get(groupId);
             if (query) {
-                if(queryMessage) await queryMessage.delete();
+                if (queryMessage) await queryMessage.delete();
 
                 queryMessage = new QueryMessage(textChannel, groupId, query);
                 QueryMessage.cache.set(groupId, queryMessage);
             }
 
-            if(!queryMessage) return;
+            if (!queryMessage) return;
 
-            await callback(queryMessage);
+            return await callback(queryMessage);
         }, "QueryMessage::get");
     }
 
@@ -107,29 +107,29 @@ export default class QueryMessage extends DynamicMessage {
         //let lastPage: number = this.getLastPage();
 
         // If provided page is negative (invalid), use 0 instead (first page)
-        if(page < 0) {
+        if (page < 0) {
             page = 0;
         }
 
         // If provided page is too high (first result number doesn't exist),
         // ensure the page is immediately the last one + 1 and retrieve new results
-        if((page * RESULTS_PER_PAGE) + 1 > this.queue.length) {
+        if ((page * RESULTS_PER_PAGE) + 1 > this.queue.length) {
             // page = lastPage + 1;
-            
-            if(!this.queue.length) {
+
+            if (!this.queue.length) {
                 page = 0;
             }
 
-            if(this.lastPage === undefined) {
+            if (this.lastPage === undefined) {
                 const { items, nextPage } = await YoutubeSong.search(this.query, RESULTS_PER_PAGE, this.nextPage);
 
-                if(!items.length) {
+                if (!items.length) {
                     this.lastPage = lastPage;
                     this.nextPage = undefined;
                 } else {
                     this.queue.push(...items);
                     this.nextPage = nextPage;
-                    
+
                     // After retrieving new songs, refresh lastPage
                     lastPage = this.getLastPage();
                     page = lastPage;
@@ -137,8 +137,8 @@ export default class QueryMessage extends DynamicMessage {
             }
 
             // If last page has been reached, return previous page or empty message
-            if(this.lastPage !== undefined) {
-                if((this.content as any)?.content) return (this.content as any).content;
+            if (this.lastPage !== undefined) {
+                if ((this.content as any)?.content) return (this.content as any).content;
                 return "```swift\n                             No results found.```";
             }
         }
@@ -148,7 +148,7 @@ export default class QueryMessage extends DynamicMessage {
 
         // Retrieve the first RESULT_PER_PAGE songs at the page index 
         const firstIndex = this.currentPage * RESULTS_PER_PAGE;
-        const songs = this.queue.slice(firstIndex, firstIndex+RESULTS_PER_PAGE);
+        const songs = this.queue.slice(firstIndex, firstIndex + RESULTS_PER_PAGE);
 
 
         // Generate header with queue summary
@@ -171,10 +171,28 @@ export default class QueryMessage extends DynamicMessage {
     public async updateContent(page: number = this.currentPage): Promise<DynamicMessage | undefined> {
         const lastPage = this.getLastPage();
         const content = await this.getContent(page, lastPage);
-        
-        // Generate embed reactions to be used as command shortcuts
-        const component = new ActionRowBuilder().addComponents(
 
+        // Generate embed dropdown list with song selection
+        const menuBuilder = new StringSelectMenuBuilder()
+            .setCustomId('query-select')
+            .setPlaceholder('Select song from this page');
+
+        const firstIndex = this.currentPage * RESULTS_PER_PAGE;
+        for(let i = firstIndex+1; i < firstIndex+RESULTS_PER_PAGE+1; i++) {
+            // If item doesn't exist, stop generating options
+            if(!this.queue[i-1]) break;
+
+            menuBuilder.addOptions(
+                new StringSelectMenuOptionBuilder()
+                        .setLabel(`${i}`)
+                        .setValue(`${i}`),
+            )
+        }
+
+        const select = new ActionRowBuilder().addComponents(menuBuilder);
+
+        // Generate embed reactions to be used as command shortcuts
+        const buttons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`query-previous`)
                 .setStyle(ButtonStyle.Secondary)
@@ -196,7 +214,7 @@ export default class QueryMessage extends DynamicMessage {
                 .setEmoji("✖️")
         );
 
-        return super.setContent({ content, components: [component] });
+        return super.setContent({ content, components: [select, buttons] });
     }
 
     /** Updates the message content to display the previous queue page index. */

@@ -86,7 +86,6 @@ export default class YoutubeSong extends ASong {
 
             // If item is a youtube playlist, create different instance
             if(type === "playlist") {
-                Logger.info(`ID: ${id}`)
                 return new YoutubePlaylistSong(title, id, parseInt(length));
             }
 
@@ -102,8 +101,6 @@ export default class YoutubeSong extends ASong {
         return { items: items, nextPage };
     }
 }
-
-// playmix, clear, leave, join, bind, nowplaying, queue, favourites
 
 /* TODO: use following code as test case
 const tests = ["http://www.youtube.com/watch?v=-wtIMTCHWuI",
