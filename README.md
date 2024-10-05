@@ -1,3 +1,5 @@
-##TODO
-- Reaction feedback on music messages
-- Music favourites
+## TODO
+- Slash commands
+- Test audio files support
+- Add soundcloud support
+- Centralize static locking mechanisms with singleton-like class

@@ -6,7 +6,7 @@ import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../e
 
 const clearCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Stops playing and disconnects the bot.",
-    aliases: ["clear", "stop"], usage: "TODO",
+    aliases: ["clear", "stop"], usage: "`ham clear`\n`ham stop`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

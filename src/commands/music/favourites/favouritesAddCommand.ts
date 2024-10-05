@@ -10,8 +10,10 @@ import SpotifySong from "../../../classes/music/song/spotify/SpotifySong";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
 
 const favouritesAddCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string }, void> = {
-    category: "Music", description: "Adds the current playing song to the favourites.",
-    aliases: ["favouritesadd", "favadd", "fa"],
+    category: "Music", description: "Adds the current playing song to the favourites.\
+    Playlists and Mixes cannot be directly added (the current song will be added instead).",
+    aliases: ["favouritesadd", "fa"],
+    usage: "`ham favouritesadd`\n`ham fa`",
 
     command: async ({ i, userId }) => {
         let song: SpotifySong | YoutubeSong | YoutubeMixSong | YoutubePlaylistSong | undefined;

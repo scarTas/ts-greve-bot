@@ -6,7 +6,10 @@ import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/
 
 const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolicy?: MusicPlayer.LoopPolicy }, void> = {
     category: "Music", description: "Changes the loop setting to \"none\", \"song\", \"all\".",
-    aliases: ["loop"], usage: "TODO",
+    aliases: ["loop"], usage: "`ham loop` // Moves to the next loop setting (none => song => all)\n\
+    `ham loop none` // No loop is set, songs are played normally\n\
+    `ham loop song` // The current song loops indefinitely\n\
+    `ham loop all`  // The whole playlist loops and skipped songs are added at the end of the queue",
     
     command: async ({ i, loopPolicy }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

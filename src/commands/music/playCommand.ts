@@ -10,10 +10,13 @@ const uriRegex: RegExp = /https?:\/\/.*/;
 
 const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?: string }, void> = {
     category: "Music", description: "Plays a song in your voice channel, loading \
-    the url (if supported) or searching on YouTube.\nCurrently, the supported \
-    websites are Youtbe and Spotify (also, direct resources URLs such as MP3); \
-    SoundCloud support is coming soon.",
-    aliases: ["play", "p"], usage: "TODO",
+    the url (if supported) or searching on YouTube.\nSupported  websites are Youtube and Spotify (also, direct resources URLs such as MP3). ",
+    aliases: ["play", "p"], usage: "`ham play https://www.youtube.com/watch?v=4dL1XSPC9FI` // Plays the youtube video on the voice channel\n\
+    `ham play https://www.youtube.com/playlist?list=PLBO2h-GzDvIbGg18a-22GCHDHrdAVZ1SL` // Adds to the queue all the videos in the Youtube playlist\n\
+    `ham play https://open.spotify.com/track/6d42nB4qWqL8QJUUZjt640` // Plays the youtube video of the provided Spotify song\n\
+    `ham play https://open.spotify.com/album/2dyvMAiHbNpIiQzMbjrVPf` // Adds to the queue all the songs in the Spotify album\n\
+    `ham play https://open.spotify.com/playlist/04AaSp8yroBYFelEom9RtB` // Adds to the queue all the songs in the Spotify playlist\n\
+    `ham play emre song` // A message with query results will be sent in the channel for you to choose from.",
 
     command: async ({ msg, uri, query }) => {
 

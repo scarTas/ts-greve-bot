@@ -6,7 +6,8 @@ import FavouritesMessage from "../../../classes/music/message/favouritesMessage"
 
 const favouritesRemoveCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string, index: number }, void> = {
     category: "Music", description: "Removes a song from the favourites.",
-    aliases: ["favouritesremove", "favrm", "frm", "fr"],
+    aliases: ["favouritesremove", "fr"],
+    usage: "`ham fr 4` // Removes the selected songs from your favourites",
 
     command: async ({ i, userId, index }) => {
 

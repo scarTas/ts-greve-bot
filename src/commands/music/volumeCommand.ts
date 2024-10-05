@@ -6,7 +6,8 @@ import Logger from "../../classes/logging/Logger";
 
 const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, void> = {
     category: "Music", description: "Changes the volume of the music.",
-    aliases: ["volume", "v"], usage: "TODO",
+    aliases: ["volume", "v"], usage: "`ham volume 0.5` // Lower the songs volume\n\
+    `ham volume 10000` // Destroys your ears",
     
     command: async ({ msg, volume }) => {
         await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {

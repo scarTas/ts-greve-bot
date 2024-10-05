@@ -5,7 +5,7 @@ import MusicPlayer from "../../classes/music/MusicPlayer";
 
 const removeCommandMetadata: CommandMetadata<{ msg: Message, index: number }, void> = {
     category: "Music", description: "Plays the previous song in the queue.",
-    aliases: ["remove", "rm"], usage: "TODO",
+    aliases: ["remove", "rm"], usage: "`ham remove 2` // Removes the second song from the queue",
     
     command: async ({ msg, index }) => {
         await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {

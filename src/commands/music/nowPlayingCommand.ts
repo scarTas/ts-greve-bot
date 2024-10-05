@@ -5,7 +5,7 @@ import {  msgReactErrorHandler, msgReactResponseTransformer } from "../../events
 
 const nowPlayingCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shows the currently playing song",
-    aliases: ["nowplaying", "np"], usage: "TODO",
+    aliases: ["nowplaying", "np"], usage: "`ham nowplaying`\n`ham np`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

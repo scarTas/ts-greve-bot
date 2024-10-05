@@ -7,7 +7,7 @@ import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../e
 const skipCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "skips the current song in the queue, \
     playing the next one (if any).",
-    aliases: ["skip", "s"], usage: "TODO",
+    aliases: ["skip", "s"], usage: "`ham skip`\n`ham s`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

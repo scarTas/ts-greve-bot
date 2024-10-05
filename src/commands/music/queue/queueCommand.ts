@@ -6,7 +6,7 @@ import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../even
 
 const queueCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shows the playlist currently playing",
-    aliases: ["queue", "q"], usage: "TODO",
+    aliases: ["queue", "q"], usage: "`ham queue`\n`ham q`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

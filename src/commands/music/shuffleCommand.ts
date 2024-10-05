@@ -5,7 +5,7 @@ import MusicPlayer from "../../classes/music/MusicPlayer";
 
 const shuffleCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
     category: "Music", description: "Shuffles the queue songs.",
-    aliases: ["shuffle", "sh"], usage: "TODO",
+    aliases: ["shuffle", "sh"], usage: "`ham shuffle`",
     
     command: async ({ msg }) => {
         await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {

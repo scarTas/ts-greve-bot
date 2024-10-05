@@ -6,7 +6,7 @@ import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../even
 const skipMixCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "skips the current song or mix in the queue, \
     playing the next song (if any).",
-    aliases: ["skipmix", "sm"], usage: "TODO",
+    aliases: ["skipmix", "sm"], usage: "`ham skipmix`\n`ham sm`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

@@ -5,7 +5,7 @@ import FavouritesMessage from "../../../classes/music/message/favouritesMessage"
 
 const favouritesCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
     category: "Music", description: "Shows all the songs added to your favourites.",
-    aliases: ["favourites", "fav", "f"], usage: "`ham favourites` // Shows your favourite songs",
+    aliases: ["favourites", "f"], usage: "`ham favourites`\n`ham f`",
 
     command: async ({ msg }) => {
         // Force message creation (hence the "!")

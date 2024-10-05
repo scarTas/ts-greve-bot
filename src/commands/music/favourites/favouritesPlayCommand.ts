@@ -9,6 +9,8 @@ import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../even
 const favouritesPlayCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string, index: number | undefined }, void> = {
     category: "Music", description: "Plays the selected song from the favourites.",
     aliases: ["favouritesplay", "favplay", "fp"],
+    usage: "`ham fp` // Adds all your favourite songs to the queue\n\
+    `ham fp 3` // Adds the selected song to the queue",
 
     command: async ({ i, userId, index }) => {
         if(index) {

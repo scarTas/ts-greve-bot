@@ -6,7 +6,7 @@ import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../e
 
 const unpauseCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Unpauses the playing song.",
-    aliases: ["unpause", "ups"], usage: "TODO",
+    aliases: ["unpause", "ups"], usage: "`ham unpause`\n`ham ups`",
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {

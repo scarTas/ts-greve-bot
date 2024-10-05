@@ -7,8 +7,8 @@ import YoutubeMixSong from "../../../classes/music/song/youtube/YoutubeMixSong";
 
 const playMixCommandMetadata: CommandMetadata<{ msg: Message, uri: string }, void> = {
     category: "Music", description: "Plays a mix of a youtube video song in your \
-    voice channel.",
-    aliases: ["playmix", "pm"], usage: "TODO",
+    voice channel.", aliases: ["playmix", "pm"],
+    usage: "`ham playmix https://www.youtube.com/watch?v=4dL1XSPC9FI` // Stars a mix starting from this Youtube video",
 
     command: async ({ msg, uri }) => {
 

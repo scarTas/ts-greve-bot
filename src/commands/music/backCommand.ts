@@ -6,7 +6,8 @@ import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../e
 
 const backCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Plays the previous song in the queue.",
-    aliases: ["back", "b"], usage: "TODO",
+    aliases: ["back", "b"], usage: "`ham back`\n`ham b`",
+    
     
     command: async ({ i }) => {
         await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
