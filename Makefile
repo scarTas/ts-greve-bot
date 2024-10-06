@@ -15,7 +15,7 @@ DOCKER_COMPOSE_PROD=./docker-compose.prod.yml
 
 # ==== PHONY TARGETS ========================================================= #
 # Don't treat these targets as files
-.PHONY: all local dev release build stop clean prune
+.PHONY: all local dev register release build stop clean prune
 
 # Default behaviour: local
 all: local
@@ -37,6 +37,10 @@ local:
 dev: ${TARGET} stop
 #nohup docker-compose -f ${DOCKER_COMPOSE_DEV} up --build > ${LOGFILE} 2> ${ERRFILE} &
 	docker compose -f ${DOCKER_COMPOSE_DEV} up --build
+
+# Register slash commands for the bot (check source code)
+register:
+	env $$(cat .env | grep -v '^#' | sed 's/\r$$//' | xargs -r) npm run register-commands
 
 # RELEASE: run docker-compose release configuration
 #release: ${TARGET}
