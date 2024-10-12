@@ -52,15 +52,15 @@ export default class FavouritesMessage extends DynamicMessage {
      *  FavouriteMessage instances can only retrieved and used with this method,
      *  which locks the instance used to avoid concurrency.
      *  After the callback function is completed, the lock is free'd. */
-    public static async get(msg: Message | Interaction, callback: (message: FavouritesMessage | undefined) => any, create: boolean = false): Promise<void> {
+    public static async get(i: Message | Interaction, callback: (message: FavouritesMessage | undefined) => any, create: boolean = false): Promise<void> {
         // Retrieve server id + user id as cache lock policy.
         // If there is no guild, return; the message was probably sent in PMs.
-        if (!msg.guild?.id || !msg.member?.user.id) return;
-        const userId = msg.member.user.id;
-        const groupId: string | undefined = msg.guild.id + userId;
+        if (!i.guild?.id || !i.member?.user.id) return;
+        const userId = i.member.user.id;
+        const groupId: string | undefined = i.guild.id + userId;
 
         // Check for textChannel - if none, return
-        const textChannel: TextChannel | undefined = MusicPlayer.checkTextChannelPermissions(msg);
+        const textChannel: TextChannel | undefined = MusicPlayer.checkTextChannelPermissions(i);
         if(!textChannel) return;
 
         // Retrieve musicPlayer and execute requested logic safely (with locks)

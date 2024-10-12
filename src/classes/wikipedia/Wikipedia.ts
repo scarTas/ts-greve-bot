@@ -31,7 +31,9 @@ export default class Wikipedia {
      *  articles that match the submitted query.
      *  If no limit is specified, only return the first result. */
     public static async searchArticleTitles(query: string, limit: number = 1, language: string = "en"): Promise<string[]> {
-        Logger.info(`Query: ${query}, Languange: ${language}`)
+        Logger.info(`Query: ${query}, Languange: ${language}`);
+
+        if(!Wikipedia.isLanguageValid(language)) throw new Error(`Invalid language "${language}"`);
 
         // Prepare API call query params
         const params = { ...Wikipedia.defParams, list: "search", srsearch: query, limit }

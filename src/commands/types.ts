@@ -1,4 +1,4 @@
-import { AnySelectMenuInteraction, ButtonInteraction, CommandInteraction, Message, MessageReaction, MessageReactionEventDetails, PartialMessageReaction, PartialUser, StringSelectMenuInteraction, User } from "discord.js";
+import { AnySelectMenuInteraction, ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, Message, MessageReaction, MessageReactionEventDetails, PartialMessageReaction, PartialUser, StringSelectMenuInteraction, User } from "discord.js";
 
 /** Define metadata object value definition.
  *  Command metadata are mainly used by the "help" command. */
@@ -75,9 +75,17 @@ export type CommandMetadata<I, O>  = {
         errorHandler: (interaction: AnySelectMenuInteraction, e: Error) => any;
     };
 
-    // TODO
+    /** Contains methods for chatInput interactions handling to execute command. */
     onSlash?: {
-        requestTransformer: (interaction: CommandInteraction) => Promise<void> | void;
+        /** Method used to handle the incoming interaction event and extract the
+         *  correct parameters to be passed to the core command. */
+        requestTransformer: (interaction: ChatInputCommandInteraction) => I | Promise<I>;
+        /** Callback method called after command completion.
+         *  The callback will therefore reply, defer update, etc... */
+        responseTransformer: (interaction: CommandInteraction, output: O) => any;
+        /** Method used to handle exceptions during the execution of a command
+         *  that has been invoked via button interaction. */
+        errorHandler: (interaction: CommandInteraction, e: Error) => any;
     };
 }
 

@@ -72,21 +72,27 @@ export default class YoutubeSong extends ASong {
     /** Uses Youtube search APIs in order to retrieve videos from the query.
      *  There is a maximum number of results that can be retrieved, but the
      *  nextPage token can be used to retrieve the next results. */
-    public static async search(query: string, limit: number, token?: object): Promise<{ items: YoutubeSong[], nextPage?: object }> {
+    public static async search(query: string, limit: number, token?: object): Promise<{ items: ASong[], nextPage?: object }> {
+        // Try to filter out channels from the results
+        query = `${query} -channel`;
         // If the token (nextPage token) is provided, use it to go to the next page
         let items, nextPage;
         if(token)   ({ items, nextPage } = await YouTubeSearchApi.NextPage(token, true, limit));
-        else        ({ items, nextPage } = await YouTubeSearchApi.GetListByKeyword(query, true, limit, [{type:"video/playlist"}]));// "video/channel/playlist/movie"
+        else        ({ items, nextPage } = await YouTubeSearchApi.GetListByKeyword(query, true, limit/*, [{type:"video"}]*/));// "video/channel/playlist/movie"
 
+        const results: ASong[] = [];
         // Filter youtube items with useful data
-        items = items.map(({ id, title, length, thumbnail, isLive, type }: any) => {
+        items.forEach(({ id, title, length, thumbnail, isLive, type }: any) => {
+            // Ignore channels
+            if(type === 0) return;
 
             // Retrieve thumbnail
             const thumb: string | undefined = thumbnail?.thumbnails?.pop()?.url;
 
             // If item is a youtube playlist, create different instance
             if(type === "playlist") {
-                return new YoutubePlaylistSong(title, id, parseInt(length));
+                results.push(new YoutubePlaylistSong(title, id, parseInt(length)));
+                return;
             }
 
             // If video is LIVE, don't calculate video length (use 0)
@@ -94,11 +100,11 @@ export default class YoutubeSong extends ASong {
             const lengthSeconds: number = (lengthString && lengthString.includes(':')) ? stringToSeconds(lengthString) : 0;
 
             // Return YoutubeSong instance
-            return new YoutubeSong(title, id, lengthSeconds, lengthString, thumb);
+            results.push(new YoutubeSong(title, id, lengthSeconds, lengthString, thumb));
         });
 
         // Return parsed items and nextPage token
-        return { items: items, nextPage };
+        return { items: results, nextPage };
     }
 }
 

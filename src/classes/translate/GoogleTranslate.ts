@@ -5,7 +5,7 @@ export default class GoogleTranslate {
 
     /* ==== STATIC PROPERTIES =============================================== */
     /** List of languages supported by Google Translate's APIs. */
-    private static readonly supportedLanguages = new Set([
+    public static readonly supportedLanguages = new Set([
         "af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs", "bg", "ca",
         "ceb", "zh-CN", "zh-TW", "co", "hr", "cs", "da", "nl", "en", "eo", "et",
         "fi", "fr", "fy", "gl", "ka", "de", "el", "gu", "ht", "ha", "haw", "iw",

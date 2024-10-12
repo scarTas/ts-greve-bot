@@ -1,14 +1,15 @@
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
-import { Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 
-const removeCommandMetadata: CommandMetadata<{ msg: Message, index: number }, void> = {
+const removeCommandMetadata: CommandMetadata<{ i: Message | Interaction, index: number }, void> = {
     category: "Music", description: "Plays the previous song in the queue.",
     aliases: ["remove", "rm"], usage: "`ham remove 2` // Removes the second song from the queue",
     
-    command: async ({ msg, index }) => {
-        await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+    command: async ({ i, index }) => {
+        await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             await musicPlayer.remove(index);
         });
     },
@@ -21,12 +22,19 @@ const removeCommandMetadata: CommandMetadata<{ msg: Message, index: number }, vo
             index = parseInt(index);
             if(isNaN(index) || index < 1) throw new Error("Invalid index");
             
-            return { msg, index: --index };
+            return { i: msg, index: --index };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const index = interaction.options.getNumber("index", true);
+            return { i: interaction, index };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default removeCommandMetadata;

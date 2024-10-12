@@ -1,3 +1,4 @@
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
@@ -26,8 +27,15 @@ const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content: strin
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: function(interaction) {
+            const text = interaction.options.getString("text", true);
+            return { words: text.split(/[\n ]+/) };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default clapCommandMetadata;

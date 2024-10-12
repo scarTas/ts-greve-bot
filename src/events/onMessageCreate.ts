@@ -5,6 +5,7 @@ import Logger from "../classes/logging/Logger";
 import UserRepository from "../classes/user/UserRepository";
 import { commandMetadataMap } from "../commands/registration";
 import querySelectCommandMetadata from "../commands/music/query/querySelectCommand";
+import { VALID_PREFIX_REGEX } from "../commands/messages/prefixCommand";
 
 /** Default prefix that can be used by users to activate text commands.
  *  If default prefix is not defined in the environment, use "ham". */
@@ -26,42 +27,6 @@ async function onMessageCreate(msg: Message): Promise<void> {
     // Youtube Query: if the message content is a number and there is a pending
     // queryMessage, try to play the song on the musicPlayer
     executeCommand(querySelectCommandMetadata, msg, lowerCaseContent, []);
-
-    /*
-    const index: number = parseInt(lowerCaseContent);
-    if (!isNaN(index) && index > 0) {
-        try {
-            // Try to retrieve current queryMessage (if any) with Youtube results.
-            //If there is no queryMessage, the callback is not called.
-            await QueryMessage.get(msg, async (queryMessage: QueryMessage) => {
-                    // Retrieve song at the selected index
-                    const song: ASong | undefined = queryMessage.getSong(index - 1);
-
-                    // If index is invalid, do nothing
-                    if (!song) return;
-
-                    // If the queried song is a playlist, convert it to song array
-                    const songs: ASong[] = song.type === ASong.SongType.YOUTUBE_PLAYLIST
-                        ? await YoutubePlaylistSong.getSongs(song.id)
-                        : [song];
-
-                    // Add user's id to song(s) metadata
-                    songs.forEach(s => s.requestor = msg.member?.id)
-
-                    // Retrieve current instance of musicPlayer (or create it and
-                    // add song(s) to the queue 
-                    await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
-                        await musicPlayer.add(...songs);
-                    });
-
-                // Delete queryMessage after adding the song to the player
-                await queryMessage.destroy();
-            });
-        } catch (e) {
-            Logger.error("onMessageCreate Youtube search error");
-            msgReactErrorHandler(msg, e as Error);
-        }
-    }*/
 
     // If the user has a custom prefix set, retrieve it - always use the default
     const customPrefix = await UserRepository.getUserPrefix(msg.author.id);
@@ -97,6 +62,9 @@ async function onMessageCreate(msg: Message): Promise<void> {
             msgReplyResponseTransformer(msg, { content: "Cazzo vuoi?" });
             return;
         }
+
+        // Validate name characters to avoid errors during RegExp construction
+        if(!VALID_PREFIX_REGEX.test(commandName)) return;
 
         // Remove command name and space from message content before passing it
         content = content.replace(new RegExp(`^(${commandName})\\s?`, "i"), "");

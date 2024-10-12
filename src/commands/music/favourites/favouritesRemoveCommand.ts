@@ -3,13 +3,16 @@ import { Interaction, Message } from "discord.js";
 import UserRepository from "../../../classes/user/UserRepository";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
 import FavouritesMessage from "../../../classes/music/message/favouritesMessage";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../../events/onInteractionCreate";
 
-const favouritesRemoveCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string, index: number }, void> = {
+const favouritesRemoveCommandMetadata: CommandMetadata<{ i: Message | Interaction, index: number }, void> = {
     category: "Music", description: "Removes a song from the favourites.",
     aliases: ["favouritesremove", "fr"],
     usage: "`ham fr 4` // Removes the selected songs from your favourites",
 
-    command: async ({ i, userId, index }) => {
+    command: async ({ i, index }) => {
+        const userId = i.member?.user.id;
+        if(!userId) throw new Error("No userId found");
 
         // Remove the song at the given index from the favourites for the user
         await UserRepository.deleteUserFavourite(userId, index);
@@ -25,19 +28,25 @@ const favouritesRemoveCommandMetadata: CommandMetadata<{ i: Message | Interactio
 
     onMessage: {
         requestTransformer: (msg, _content, args) => {
-            const userId = msg.member?.id;
-            if(!userId) throw new Error("No userId found");
-    
             // Retrieve index to be removed - if argument is not a number, return
             let index: string | number | undefined = args.pop();
             if(!index) throw new Error("No index provided");
             index = parseInt(index);
             if(isNaN(index) || index < 1) throw new Error("Invalid index");
     
-            return { i: msg, userId, index: --index };
+            return { i: msg, index: --index };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
+    },
+
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const index = interaction.options.getNumber("index", true);
+            return { i: interaction, index };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
     }
 }
 export default favouritesRemoveCommandMetadata;

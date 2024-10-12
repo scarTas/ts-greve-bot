@@ -1,8 +1,16 @@
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
 const pregnantCommandMetadata: CommandMetadata<null, { content: string }> = {
-    category: "Messages", description: "PLAP PLAP PLAP GET PREGNANT GET PREGNANT", aliases: ["pregnant"],
+    category: "Messages",
+    description: "**Leg locks you** **PLAP** **PLAP** **PLAP** GET ME PREGNANT GET ME PREGNANT GET ME PREGNANT! UAAAH! **SQUELCH**",
+    aliases: ["pregnant", "pregant", "pragnent", "pargant", "gregnant", "pegnate",
+        "pegrent", "pregegnant", "pregonate", "prengan", "prregnant", "pregante",
+        "pergert", "pegnat", "pragnet", "pergenat", "prangnet", "pragnan", "pregnart",
+        "bregant", "pregarnt", "pregat", "fregnant", "pargnet", "peegnant", "pergnut",
+        "pgrenant", "praganant", "prangent", "prefnat", "pregananant", "pregernet",
+        "prengt", "prognant", "pretnet"],
     usage: "`ham pregnant`",
     
     command: () => {
@@ -13,8 +21,12 @@ const pregnantCommandMetadata: CommandMetadata<null, { content: string }> = {
         requestTransformer: (_msg, _content, _args) => null,
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (_interaction) => null,
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default pregnantCommandMetadata;

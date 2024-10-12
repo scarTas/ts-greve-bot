@@ -5,13 +5,14 @@ import MusicPlayer from "../MusicPlayer";
 import { secondsToString } from "../../../utils/length";
 import { AudioPlayerStatus } from "@discordjs/voice";
 import ASong from "../song/ASong";
+import Logger from "../../logging/Logger";
 
 export default class NowPlayingMessage extends DynamicMessage {
 
     /** Updates the content of the message displaying current playing song. */
     updateContent(musicPlayer: MusicPlayer): DynamicMessage | undefined {
         const song: ASong | undefined = musicPlayer.getCurrent();
-        if(!song) return;
+        if (!song) return;
         const queue: ASong[] = musicPlayer.queue;
 
         // Generate embed with song metadata
@@ -26,24 +27,27 @@ export default class NowPlayingMessage extends DynamicMessage {
                 name: `Song duration: [\`${songLength}\`]`,
                 value: `By: <@${song.requestor}>`, inline: true
             },
-            {
-                name: `Queue duration: [\`${queueLength}\`]`,
-                value: `**Enqueued songs: [\`${queue.length}\`]**`, inline: true
-            })
+                {
+                    name: `Queue duration: [\`${queueLength}\`]`,
+                    value: `**Enqueued songs: [\`${queue.length}\`]**`, inline: true
+                })
 
-            if(song.type === ASong.SongType.YOUTUBE_MIX) {
-                embed.setFooter({
-                    text: "This is a Youtube Mix! To skip it, use the `ham skipmix` command."
-                });
-            } else if(queue.length > 1) {
-                embed.setFooter({
-                    text: `Coming up: ${queue[1].title}`,
-                    iconURL: queue[1].thumbnail
+        if (song.type === ASong.SongType.YOUTUBE_MIX) {
+            embed.setFooter({
+                text: "This is a Youtube Mix! To skip it, use the `ham skipmix` command."
             });
-            
-        }
-        if(song.thumbnail) embed.setImage(song.thumbnail);
+        } else if (queue.length > 1) {
+            embed.setFooter({
+                text: `Coming up: ${queue[1].title}`,
+                iconURL: queue[1].thumbnail
+            });
 
+        }
+        try {
+            if (song.thumbnail) embed.setImage(song.thumbnail);
+        } catch (e) {
+            Logger.error("Error setting thumbnail\n", e as Error);
+        }
 
         // Generate embed reactions to be used as command shortcuts
         const anyLoop: boolean = musicPlayer.loopPolicy !== MusicPlayer.LoopPolicy.NONE;

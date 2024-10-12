@@ -2,7 +2,7 @@ import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
-import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../events/onInteractionCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer, ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const clearCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Stops playing and disconnects the bot.",
@@ -28,8 +28,14 @@ const clearCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> 
         },
         responseTransformer: deferUpdateResponseTransformer,
         errorHandler: deferUpdateErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default clearCommandMetadata;

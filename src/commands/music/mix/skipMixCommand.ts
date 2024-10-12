@@ -2,6 +2,7 @@ import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../../classes/music/MusicPlayer";
 import { CommandMetadata } from "../../types";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../../events/onInteractionCreate";
 
 const skipMixCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "skips the current song or mix in the queue, \
@@ -20,8 +21,14 @@ const skipMixCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default skipMixCommandMetadata;

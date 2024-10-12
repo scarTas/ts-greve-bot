@@ -2,6 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import { CommandMetadata } from "../types";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
     category: "Information", description: "Lets the bot speak a bit about himself",
@@ -28,8 +29,12 @@ const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
         requestTransformer: (_msg, _content, _args) => null,
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (_interaction) => null,
+        responseTransformer: ephemeralReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default infoCommandMetadata;

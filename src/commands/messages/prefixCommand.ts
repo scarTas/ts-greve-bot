@@ -2,7 +2,7 @@ import UserRepository from "../../classes/user/UserRepository";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
-const regex: RegExp = /^\w{0,20}$/;
+export const VALID_PREFIX_REGEX: RegExp = /^\w{0,30}$/;
 
 const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix?: string }, { content: string }> = {
     category: "Messages", description: "Manage the bot text commands prefix.",
@@ -17,7 +17,7 @@ const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix?: string }
         }
         
         // If the rpefix is valid, save it to database
-        else if(regex.test(prefix)) {
+        else if(VALID_PREFIX_REGEX.test(prefix)) {
             await UserRepository.updateUserPrefix(userId, prefix)
             return { content: `Prefix set to \`${prefix}\`.` };
         }

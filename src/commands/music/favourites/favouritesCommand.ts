@@ -1,15 +1,16 @@
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
 import { CommandMetadata } from "../../types";
-import { Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import FavouritesMessage from "../../../classes/music/message/favouritesMessage";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../../events/onInteractionCreate";
 
-const favouritesCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
+const favouritesCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shows all the songs added to your favourites.",
     aliases: ["favourites", "f"], usage: "`ham favourites`\n`ham f`",
 
-    command: async ({ msg }) => {
+    command: async ({ i }) => {
         // Force message creation (hence the "!")
-        await FavouritesMessage.get(msg, async (favouritesMessage) =>
+        await FavouritesMessage.get(i, async (favouritesMessage) =>
             await favouritesMessage!
                 .updateContent()
                 .send()
@@ -18,12 +19,18 @@ const favouritesCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
 
     onMessage: {
         requestTransformer: (msg, _content, _args) => {
-            return { msg };
+            return { i: msg };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default favouritesCommandMetadata;

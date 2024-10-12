@@ -1,26 +1,33 @@
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
-import { Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 
-const shuffleCommandMetadata: CommandMetadata<{ msg: Message }, void> = {
+const shuffleCommandMetadata: CommandMetadata<{ i: Message | Interaction }, void> = {
     category: "Music", description: "Shuffles the queue songs.",
     aliases: ["shuffle", "sh"], usage: "`ham shuffle`",
     
-    command: async ({ msg }) => {
-        await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+    command: async ({ i }) => {
+        await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             musicPlayer.shuffle();
         });
     },
 
     onMessage: {
         requestTransformer: (msg, _content, _args) => {
-            return { msg };
+            return { i: msg };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            return { i: interaction };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default shuffleCommandMetadata;

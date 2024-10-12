@@ -1,7 +1,7 @@
 import { CommandMetadata } from "../types";
 import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
-import { deferUpdateErrorHandler, deferUpdateResponseTransformer } from "../../events/onInteractionCreate";
+import { deferUpdateErrorHandler, deferUpdateResponseTransformer, ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 
 const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolicy?: MusicPlayer.LoopPolicy }, void> = {
@@ -41,8 +41,15 @@ const loopCommandMetadata: CommandMetadata<{ i: Message | Interaction, loopPolic
         },
         responseTransformer: deferUpdateResponseTransformer,
         errorHandler: deferUpdateErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            let loopPolicy: undefined | MusicPlayer.LoopPolicy = interaction.options.getNumber("policy") || undefined;
+            return { i: interaction, loopPolicy };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default loopCommandMetadata;

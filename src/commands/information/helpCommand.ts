@@ -3,8 +3,9 @@ import { CommandMetadata } from "../types";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 import { commandMetadataMap, commandMetadatas } from "../registration";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer } from "../../events/onInteractionCreate";
 
-const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedBuilder[] }> = {
+const helpCommandMetadata: CommandMetadata<{ command?: string }, { embeds: EmbedBuilder[] }> = {
     category: "Information", description: "Shows the list of available commands and their usage.",
     aliases: ["help"],
     usage: "`ham help` // Displays complete command list\
@@ -61,8 +62,14 @@ const helpCommandMetadata: CommandMetadata<{ command: string }, { embeds: EmbedB
         requestTransformer: (_msg, _content, args) => { return { command: args[0] } },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            return { command: interaction.options.getString("command") || undefined }
+        },
+        responseTransformer: ephemeralReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default helpCommandMetadata;

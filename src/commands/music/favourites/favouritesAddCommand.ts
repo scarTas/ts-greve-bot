@@ -8,10 +8,11 @@ import YoutubeMixSong from "../../../classes/music/song/youtube/YoutubeMixSong";
 import YoutubePlaylistSong from "../../../classes/music/song/youtube/YoutubePlaylistSong";
 import SpotifySong from "../../../classes/music/song/spotify/SpotifySong";
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../../events/onMessageCreate";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../../events/onInteractionCreate";
 
 const favouritesAddCommandMetadata: CommandMetadata<{ i: Message | Interaction, userId: string }, void> = {
-    category: "Music", description: "Adds the current playing song to the favourites.\
-    Playlists and Mixes cannot be directly added (the current song will be added instead).",
+    category: "Music", description: "Adds current song to favourites. \
+Playlists/Mixes can't be added: current song will be added instead.",
     aliases: ["favouritesadd", "fa"],
     usage: "`ham favouritesadd`\n`ham fa`",
 
@@ -44,15 +45,22 @@ const favouritesAddCommandMetadata: CommandMetadata<{ i: Message | Interaction, 
     },
 
     onMessage: {
-        requestTransformer: (msg, _content, args) => {
+        requestTransformer: (msg, _content, _args) => {
             const userId = msg.member?.id;
             if(!userId) throw new Error("No userId found");
             return { i: msg, userId };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const userId = interaction.user.id;
+            return { i: interaction, userId };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default favouritesAddCommandMetadata;

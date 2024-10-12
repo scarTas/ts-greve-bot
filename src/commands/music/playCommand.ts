@@ -1,16 +1,18 @@
 import { msgReactErrorHandler, msgReactResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
-import { Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
 import ASong from "../../classes/music/song/ASong";
 import QueryMessage from "../../classes/music/message/queryMessage";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 /** Dumb regex that checks if the string is an URL (not if it's a valid one). */
 const uriRegex: RegExp = /https?:\/\/.*/;
 
-const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?: string }, void> = {
+const playCommandMetadata: CommandMetadata<{ i: Message | Interaction, uri?: string, query?: string }, void> = {
     category: "Music", description: "Plays a song in your voice channel, loading \
-    the url (if supported) or searching on YouTube.\nSupported  websites are Youtube and Spotify (also, direct resources URLs such as MP3). ",
+the url (if supported) or searching on YouTube.\n\
+Supported  websites are Youtube and Spotify (also, direct resources URLs such as MP3). ",
     aliases: ["play", "p"], usage: "`ham play https://www.youtube.com/watch?v=4dL1XSPC9FI` // Plays the youtube video on the voice channel\n\
     `ham play https://www.youtube.com/playlist?list=PLBO2h-GzDvIbGg18a-22GCHDHrdAVZ1SL` // Adds to the queue all the videos in the Youtube playlist\n\
     `ham play https://open.spotify.com/track/6d42nB4qWqL8QJUUZjt640` // Plays the youtube video of the provided Spotify song\n\
@@ -18,7 +20,7 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
     `ham play https://open.spotify.com/playlist/04AaSp8yroBYFelEom9RtB` // Adds to the queue all the songs in the Spotify playlist\n\
     `ham play emre song` // A message with query results will be sent in the channel for you to choose from.",
 
-    command: async ({ msg, uri, query }) => {
+    command: async ({ i, uri, query }) => {
 
         // If user wants to play from URL, check for the website format first
         let songs: ASong[] | undefined = undefined;
@@ -27,10 +29,10 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
         if (uri) {
             songs = await MusicPlayer.getSong(uri);
 
-            songs.forEach(s => s.requestor = msg.member?.id)
+            songs.forEach(s => s.requestor = i.member?.user.id)
 
             // If the url is valid, add to MusicPlayer queue and play
-            await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+            await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
                 await musicPlayer.add(...songs!);
             });
         }
@@ -38,7 +40,7 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
         // If input is a query, start youtube search
         //! If another queryMessage was present, it is removed
         else if(query) {
-            await QueryMessage.get(msg, async (queryMessage) => {
+            await QueryMessage.get(i, async (queryMessage) => {
                 await queryMessage.updateContent();
                 await queryMessage.send();
             }, query);
@@ -55,12 +57,24 @@ const playCommandMetadata: CommandMetadata<{ msg: Message, uri?: string, query?:
             if (uriRegex.test(args[0])) uri = args[0];
             else query = args.join(" ");
     
-            return { msg, uri, query };
+            return { i: msg, uri, query };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const uri = interaction.options.getString("link") || undefined;
+            const query = interaction.options.getString("query") || undefined;
+
+            if (!uri && !query)
+                throw new Error("No song specified");
+
+            return { uri, query, i: interaction };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default playCommandMetadata;

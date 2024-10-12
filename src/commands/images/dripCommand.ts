@@ -3,6 +3,7 @@ import { CommandMetadata } from "../types";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import Images from "../../classes/image/images";
 import UserRepository from "../../classes/user/UserRepository";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 /** Regex to be used to detect if an argument is a file uri or not. */
 export const fileRegex = /^https?:\/\/.*$/;
@@ -42,8 +43,25 @@ const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { fil
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            let user: User | null = interaction.options.getUser("user");
+            const file: string | undefined = interaction.options.getString("image") || undefined;
+
+            // No user provided: use interaction author
+            if(!user && !file && interaction.member?.user instanceof User) {
+                user = interaction.member?.user;
+            }
+
+            // No user found: error
+            if(!user) throw new Error("User not found");
+
+            return { user, file };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default dripCommandMetadata;

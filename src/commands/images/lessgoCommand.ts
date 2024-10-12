@@ -3,6 +3,7 @@ import { CommandMetadata } from "../types";
 import dripCommandMetadata from "./dripCommand";
 import Images from "../../classes/image/images";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 /** Base PNG with the dripping figure image. */
 const baseImage: string = "./assets/images/lessgo.png";
@@ -30,8 +31,12 @@ const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { f
         requestTransformer: dripCommandMetadata.onMessage!.requestTransformer,
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: dripCommandMetadata.onSlash!.requestTransformer,
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default lessgoCommandMetadata;

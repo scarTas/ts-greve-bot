@@ -1,3 +1,4 @@
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
@@ -24,8 +25,12 @@ const susCommandMetadata: CommandMetadata<null, { content: string }> = {
         requestTransformer: (_msg, _content, _args) => null,
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (_interaction) => null,
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default susCommandMetadata;

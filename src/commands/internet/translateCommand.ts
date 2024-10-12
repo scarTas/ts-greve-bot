@@ -4,6 +4,7 @@ import GoogleTranslate from "../../classes/translate/GoogleTranslate";
 import { emptyErrorHandler } from "../../events/onMessageReactionAdd";
 import Logger from "../../classes/logging/Logger";
 import { PartialGroupDMChannel } from "discord.js";
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const translateCommandMetadata: CommandMetadata<{ query: string, targetLanguage: string, sourceLanguage?: string }, { content: string }> = {
     category: "Internet", description: "Translates some text into another language.",
@@ -71,8 +72,19 @@ const translateCommandMetadata: CommandMetadata<{ query: string, targetLanguage:
                 .catch(e => Logger.error("responseTransformer error", e));
         },
         errorHandler: emptyErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: function(interaction) {
+            const query = interaction.options.getString("text", true);
+            const targetLanguage = interaction.options.getString("targetlanguage", true);
+            const sourceLanguage = interaction.options.getString("sourcelanguage") || undefined;
+
+            // Business logic will validate target and source language
+            return { query, targetLanguage, sourceLanguage };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default translateCommandMetadata;

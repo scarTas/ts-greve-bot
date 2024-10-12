@@ -1,16 +1,17 @@
 import { msgReactErrorHandler, msgReactResponseTransformer, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
-import { Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import MusicPlayer from "../../classes/music/MusicPlayer";
 import Logger from "../../classes/logging/Logger";
+import { ephemeralReplyErrorHandler, noReplyResponseTransformer } from "../../events/onInteractionCreate";
 
-const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, void> = {
+const volumeCommandMetadata: CommandMetadata<{ i: Message | Interaction, volume: number }, void> = {
     category: "Music", description: "Changes the volume of the music.",
     aliases: ["volume", "v"], usage: "`ham volume 0.5` // Lower the songs volume\n\
     `ham volume 10000` // Destroys your ears",
     
-    command: async ({ msg, volume }) => {
-        await MusicPlayer.get(msg, async (musicPlayer: MusicPlayer) => {
+    command: async ({ i, volume }) => {
+        await MusicPlayer.get(i, async (musicPlayer: MusicPlayer) => {
             musicPlayer.setVolume(volume);
         });
     },
@@ -29,12 +30,19 @@ const volumeCommandMetadata: CommandMetadata<{ msg: Message, volume: number }, v
     
             Logger.debug("New volume: "+volume);
     
-            return { msg, volume };
+            return { i: msg, volume };
         },
         responseTransformer: msgReactResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const volume = interaction.options.getNumber("volume", true);
+            return { i: interaction, volume };
+        },
+        responseTransformer: noReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default volumeCommandMetadata;

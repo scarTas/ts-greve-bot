@@ -1,6 +1,7 @@
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import Wikipedia from "../../classes/wikipedia/Wikipedia";
 import { CommandMetadata } from "../types";
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string }, { content: string }> = {
     category: "Internet", description: "Sends the Wikipedia link (and embed) of a topic.",
@@ -29,8 +30,18 @@ const wikiCommandMetadata: CommandMetadata<{ query: string, language?: string },
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
+    },
+
+    onSlash: {
+        requestTransformer: function(interaction) {
+            const query = interaction.options.getString("subject", true);
+            const language = interaction.options.getString("language") || undefined;
+
+            // Business logic will validate language
+            return { query, language };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
     }
-    
-    // TODO: slash command handler
 }
 export default wikiCommandMetadata;

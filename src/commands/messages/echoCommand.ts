@@ -1,3 +1,4 @@
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
@@ -16,8 +17,15 @@ const echoCommandMetadata: CommandMetadata<{ content: string }, { content: strin
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: function(interaction) {
+            const content = interaction.options.getString("text", true);
+            return { content };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default echoCommandMetadata;

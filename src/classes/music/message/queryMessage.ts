@@ -189,8 +189,6 @@ export default class QueryMessage extends DynamicMessage {
             )
         }
 
-        const select = new ActionRowBuilder().addComponents(menuBuilder);
-
         // Generate embed reactions to be used as command shortcuts
         const buttons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
@@ -214,7 +212,14 @@ export default class QueryMessage extends DynamicMessage {
                 .setEmoji("✖️")
         );
 
-        return super.setContent({ content, components: [select, buttons] });
+        const components = [];
+        if(menuBuilder.options.length) {
+            const select = new ActionRowBuilder().addComponents(menuBuilder);
+            components.push(select);
+        }
+        components.push(buttons);
+
+        return super.setContent({ content, components });
     }
 
     /** Updates the message content to display the previous queue page index. */

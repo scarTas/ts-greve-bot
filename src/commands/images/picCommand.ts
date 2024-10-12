@@ -3,6 +3,7 @@ import { CommandMetadata } from "../types";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import HaramLeotta from "../..";
 import UserRepository from "../../classes/user/UserRepository";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder[] }> = {
     category: "Images", description: "Sends the pic of a user.", aliases: ["pic"],
@@ -31,8 +32,24 @@ const picCommandMetadata: CommandMetadata<{ user: User }, { embeds: EmbedBuilder
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            let user: User | null = interaction.options.getUser("user");
+
+            // No user provided: use interaction author
+            if(!user && interaction.member?.user instanceof User) {
+                user = interaction.member?.user;
+            }
+
+            // No user found: error
+            if(!user) throw new Error("User not found");
+
+            return { user };
+        },
+        responseTransformer: interactionReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default picCommandMetadata;

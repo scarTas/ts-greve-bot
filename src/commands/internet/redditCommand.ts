@@ -4,6 +4,7 @@ import HaramLeotta from "../..";
 import { RedditPost, RedditSortBy } from "../../classes/reddit/types";
 import Reddit from "../../classes/reddit/Reddit";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
+import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw?: boolean }, { content?: string, embeds?: EmbedBuilder[] }[]> = {
     category: "Internet", description: "Retrieves a post from the specified subreddit, if exists.",
@@ -147,8 +148,27 @@ const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: strin
             }
         },
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: (interaction) => {
+            const subreddit: string = interaction.options.getString("subreddit", true);
+            const sortby: RedditSortBy | undefined = interaction.options.getString("sortby") as RedditSortBy || undefined;
+    
+            const channel = interaction.channel;
+            const groupId = channel?.id;
+            if(!groupId) throw new Error("No channelId found");
+
+            const nsfw = (channel as TextChannel)?.nsfw;
+            return { groupId, subreddit, sortby, nsfw };
+        },
+        responseTransformer: async (interaction, replies) => {
+            for(const reply of replies) {
+                // TODO: if multiple messages are delivered in the wrong order, uncomment the "await"
+                /* await */interactionReplyResponseTransformer(interaction, reply);
+            }
+        },
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default redditCommandMetadata;
