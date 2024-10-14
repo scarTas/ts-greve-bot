@@ -1,4 +1,5 @@
 import UserRepository from "../../classes/user/UserRepository";
+import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/onMessageCreate";
 import { CommandMetadata } from "../types";
 
@@ -34,8 +35,18 @@ const prefixCommandMetadata: CommandMetadata<{ userId: string, prefix?: string }
         },
         responseTransformer: msgReplyResponseTransformer,
         errorHandler: msgReactErrorHandler
-    }
+    },
 
-    // TODO: slash command handler
+    onSlash: {
+        requestTransformer: function(interaction) {
+            const prefix = interaction.options.getString("prefix", true);
+            const userId = interaction.member?.user.id;
+            if(!userId) throw new Error("UserId not found");
+
+            return { userId, prefix };
+        },
+        responseTransformer: ephemeralReplyResponseTransformer,
+        errorHandler: ephemeralReplyErrorHandler
+    }
 }
 export default prefixCommandMetadata;

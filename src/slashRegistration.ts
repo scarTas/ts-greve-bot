@@ -36,6 +36,7 @@ import shuffleCommandMetadata from "./commands/music/shuffleCommand";
 import skipCommandMetadata from "./commands/music/skipCommand";
 import unpauseCommandMetadata from "./commands/music/unpauseCommand";
 import volumeCommandMetadata from "./commands/music/volumeCommand";
+import prefixCommandMetadata from "./commands/messages/prefixCommand";
 
 /* ==== METHODS ============================================================= */
 /** Secret token of the bot / application */
@@ -252,6 +253,17 @@ export const slashCommands = [
         .setDescription(paccoCommandMetadata.description)
         .toJSON(),
     new SlashCommandBuilder()
+        .setName(prefixCommandMetadata.aliases[0])
+        .setDescription(prefixCommandMetadata.description)
+        .addStringOption(option => option
+            .setName("prefix")
+            .setDescription("New prefix to be set.")
+            .setMinLength(1)
+            .setMaxLength(30)
+            .setRequired(true)
+        )
+        .toJSON(),
+    new SlashCommandBuilder()
         .setName(pregnantCommandMetadata.aliases[0])
         // Original description is too long
         //.setDescription(pregnantCommandMetadata.description.substring(0, 100))
@@ -383,6 +395,6 @@ export const slashCommands = [
 
 (async () => {
     Logger.info("Starting slash command registration script...");
-    await registerSlashCommands(false, false, "863192103248592946");
+    await registerSlashCommands(false, true, "863192103248592946");
     process.exit(0);
 })();

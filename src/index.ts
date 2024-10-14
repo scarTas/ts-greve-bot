@@ -116,8 +116,12 @@ export default class HaramLeotta extends Client {
 }
 
 /* ==== INIT ================================================================ */
-// Initialize bot instance to log in and start listening to events
-HaramLeotta.get().init();
+/** This block runs if file is started directly, not when imported.
+ *  Used so that the slash command registration can be triggered without
+ *  initializing the application. */
+if (require.main === module) {
+    HaramLeotta.get().init();
+}
 
 /*
 process.on("unhandledRejection", e => {

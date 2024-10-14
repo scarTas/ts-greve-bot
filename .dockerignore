@@ -1,14 +1,16 @@
 # Bloat
-**/node_modules
-**/dist
+node_modules
+dist
+volumes
 README.md
 LICENSE
 
 # Local deploy files
-Makefile
-docker-compose.*
-Dockerfile
-mongo-init.js
-.dockerignore
+.git
 .gitignore
-.env*
+.env
+Makefile
+Dockerfile
+docker-compose.*
+.dockerignore
+mongo-init.js

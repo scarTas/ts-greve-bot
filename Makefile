@@ -17,6 +17,8 @@ DOCKER_COMPOSE_PROD=./docker-compose.prod.yml
 # Don't treat these targets as files
 .PHONY: all local dev register release build stop clean prune
 
+
+# ==== DEV TARGETS ================ #
 # Default behaviour: local
 all: local
 # LOCAL: run Docker Postgres instance and local Express server (no Docker).
@@ -38,14 +40,6 @@ dev: ${TARGET} stop
 #nohup docker-compose -f ${DOCKER_COMPOSE_DEV} up --build > ${LOGFILE} 2> ${ERRFILE} &
 	docker compose -f ${DOCKER_COMPOSE_DEV} up --build
 
-# Register slash commands for the bot (check source code)
-register:
-	env $$(cat .env | grep -v '^#' | sed 's/\r$$//' | xargs -r) npm run register-commands
-
-# RELEASE: run docker-compose release configuration
-#release: ${TARGET}
-#	docker compose -f ${DOCKER_COMPOSE_PROD} up --build  > ${LOGFILE} 2> ${ERRFILE}
-
 # Build JavaScript package.
 build:
 	npm run build
@@ -53,7 +47,6 @@ build:
 # Stop running containers
 stop:
 	docker compose -f ${DOCKER_COMPOSE_DEV} down
-#	docker compose -f ${DOCKER_COMPOSE_PROD} down
 
 # Clean target directories of the project
 #! WARNING: also cleans the volumes directory, deleting database data
@@ -65,6 +58,15 @@ clean: stop
 prune:
 	docker system prune -a -f
 
+
+# ==== PROD TARGETS =============== #
+# Register slash commands for the bot (check source code)
+register:
+	env $$(cat .env | grep -v '^#' | sed 's/\r$$//' | xargs -r) npm run register-commands
+
+# RELEASE: run pipleine and release in production
+release:
+	sudo bash ../jenkins.sh ./
 
 # ==== FILE TARGETS ========================================================== #
 # Create target directory if it is missing

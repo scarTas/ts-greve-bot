@@ -2,8 +2,7 @@
 node_modules
 dist
 volumes
-coverage
-*.http
 
-# Sensitive data
+# Sensitive data and pipeline
 .env*
+docker-compose.prod.yml
