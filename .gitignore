@@ -5,4 +5,4 @@ volumes
 
 # Sensitive data and pipeline
 .env*
-docker-compose.prod.yml
+package-lock.json
