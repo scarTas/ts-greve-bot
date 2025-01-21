@@ -7,7 +7,7 @@ import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/
 import { ephemeralReplyErrorHandler, interactionReplyResponseTransformer } from "../../events/onInteractionCreate";
 
 const redditCommandMetadata: CommandMetadata<{ groupId: string, subreddit: string, sortby?: RedditSortBy, nsfw?: boolean }, { content?: string, embeds?: EmbedBuilder[] }[]> = {
-    category: "Internet", description: "Retrieves a post from the specified subreddit, if exists.",
+    hidden: true, category: "Internet", description: "Retrieves a post from the specified subreddit, if exists.",
     aliases: ["reddit", "r/", "r"], usage: "`ham reddit memes` // Retrieves a post from the `meme` community, sorting by 'hot'\
     \n`ham reddit memes best` // Retrieves a post from the `meme` community, sorting by 'best'",
     

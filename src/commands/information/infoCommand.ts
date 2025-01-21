@@ -12,12 +12,11 @@ const infoCommandMetadata: CommandMetadata<null, { embeds: EmbedBuilder[] }> = {
         const bot = HaramLeotta.get();
         const embed: EmbedBuilder = new EmbedBuilder()
             .setColor(bot.embedColor)
-            .setTitle("Haram Leotta informations")
+            .setTitle("GreveZi Bot")
             .setThumbnail(bot.user?.avatarURL() as string | null)
             .addFields(
-                { name: "First name",   value: "Haram",             inline: true },
-                { name: "Middle name",  value: "Ibra",              inline: true },
-                { name: "Surname",      value: "Leotta",            inline: true },
+                { name: "First name",   value: "Greve",             inline: true },
+                { name: "Surname",      value: "Zi",            inline: true },
                 { name: "Birthday",     value: `<t:1608163200:D>`,  inline: true },
                 { name: "Version",      value: bot.version,         inline: true }
             );

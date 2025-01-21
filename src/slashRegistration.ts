@@ -16,7 +16,6 @@ import clapCommandMetadata from "./commands/messages/clapCommand";
 import coinflipCommandMetadata from "./commands/messages/coinflipCommand";
 import echoCommandMetadata from "./commands/messages/echoCommand";
 import paccoCommandMetadata from "./commands/messages/paccoCommand";
-import pregnantCommandMetadata from "./commands/messages/pregnantCommand";
 import susCommandMetadata from "./commands/messages/susCommand";
 import playCommandMetadata from "./commands/music/playCommand";
 import favouritesAddCommandMetadata from "./commands/music/favourites/favouritesAddCommand";
@@ -262,12 +261,6 @@ export const slashCommands = [
             .setMaxLength(30)
             .setRequired(true)
         )
-        .toJSON(),
-    new SlashCommandBuilder()
-        .setName(pregnantCommandMetadata.aliases[0])
-        // Original description is too long
-        //.setDescription(pregnantCommandMetadata.description.substring(0, 100))
-        .setDescription("*Leg locks you* *PLAP* *PLAP* GET ME PREGNANT GET ME PREGNANT! UAAAH!")
         .toJSON(),
     new SlashCommandBuilder()
         .setName(susCommandMetadata.aliases[0])

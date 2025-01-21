@@ -10,7 +10,7 @@ const links: string[] = [
 ];
 
 const susCommandMetadata: CommandMetadata<null, { content: string }> = {
-    category: "Messages", description: "SUS!! SUSSY BAKA!!!!", aliases: ["sus"],
+    hidden: true, category: "Messages", description: "SUS!! SUSSY BAKA!!!!", aliases: ["sus"],
     usage: "`ham sus`",
 
     command: () => {

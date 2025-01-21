@@ -3,7 +3,7 @@ import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/
 import { CommandMetadata } from "../types";
 
 const paccoCommandMetadata: CommandMetadata<null, { content: string }> = {
-    category: "Messages", description: "Pacco Amazon 😳", aliases: ["pacco"],
+    hidden: true, category: "Messages", description: "Pacco Amazon 😳", aliases: ["pacco"],
     usage: "`ham pacco`",
     
     command: () => {

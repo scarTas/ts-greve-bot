@@ -47,10 +47,10 @@ services:
       - "27017:27017"
 
   # ==== NODE ================================================================ #
-  haram-leotta-node:
+  greve-bot-node:
 
     # Custom container name and environment variables.
-    container_name: haram-leotta-node
+    container_name: greve-bot-node
     environment:
       # MongoDB configuration
       MONGO_USERNAME: ${MONGO_USERNAME}
@@ -61,9 +61,9 @@ services:
       # Node & Discord configuration
       NODE_ENV: dev
       LOG_LEVEL: INFO
-      VERSION: 5.2.0
+      VERSION: 1.0.0
       TOKEN: ${TOKEN}
-      PREFIX: ham
+      PREFIX: g
       EMBED_COLOR: 0xad1457
       MUSIC_MAX_HISTORY: 5
       REDDIT_MAX_SUBS: 5
@@ -71,7 +71,7 @@ services:
     # Build image from Dockerfile in the current directory and override its CMD.
     build: .
     command: npm run start
-    image: haram-leotta-node:latest
+    image: greve-bot:latest
 
     # Node depends on mongo; ensure it starts before Node.
     depends_on:

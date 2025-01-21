@@ -3,7 +3,7 @@ import { msgReactErrorHandler, msgReplyResponseTransformer } from "../../events/
 import { CommandMetadata } from "../types";
 
 const echoCommandMetadata: CommandMetadata<{ content: string }, { content: string }> = {
-    category: "Messages", description: "Repeats some text.", aliases: ["echo"],
+    hidden: true, category: "Messages", description: "Repeats some text.", aliases: ["echo"],
     usage: "`ham echo yoooooo` // Repeats `yoooooo`",
     
     command: ({ content }) => {

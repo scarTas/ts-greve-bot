@@ -107,10 +107,10 @@ export default class HaramLeotta extends Client {
     public updatePresence() {
         this.user?.setPresence({
             activities: [{
-                type: ActivityType.Watching,
-                name: `you from the keyhole`
+                type: ActivityType.Competing,
+                name: `[GZ]`
             }],
-            status: 'idle'
+            status: 'online'
         });
     }
 }

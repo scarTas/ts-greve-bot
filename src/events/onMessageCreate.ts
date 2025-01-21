@@ -94,24 +94,22 @@ function getInsult(content: string): string | undefined {
         case "baba": return "boey";
         case "good bot": return ": )";
         case "bad bot": return ": (";
-        case "per il meme": return "<@192312520567029760>";
+        //case "per il meme": return "<@>";
     }
 
     // For each word in the message, check if there is a reply to be returned
-    content.split(/[\n ]+/).some(word => {
+    for (const word of content.split(/[\n ]+/)){
         switch (word) {
             case "grazie": return "grazie al cazzo";
             case "coglione": return "Ma coglione a chi, figlio di puttana?";
             case "bot": return "Cazzo vuoi?";
             case "suca": return "melo";
             case "lol": return "Cazzo ridi che domani muori";
-            case "beasty": case "bisty":
-            case "bisti": return "per il meme";
             case "zitto": case "taci":
             case "stai zitto":
             case "muto": case "mutati": return "audio";
         }
-    });
+    }
 
     // No reply found - return nothing
 }

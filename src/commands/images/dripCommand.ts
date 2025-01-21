@@ -13,7 +13,7 @@ const baseImage: string = "./assets/images/drip.png";
 const imageName: string = "drip.png";
 
 const dripCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
-    category: "Images", description: "HE REALLY BE DRIPPIN DOE", aliases: ["drip"],
+    hidden: true, category: "Images", description: "HE REALLY BE DRIPPIN DOE", aliases: ["drip"],
     usage: "`ham drip` // Drips yourself\
     \n`ham drip @Emre` // Drips the shit out of Emre\
     \n`ham drip emre` // Same",

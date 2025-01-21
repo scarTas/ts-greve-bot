@@ -9,7 +9,7 @@ import { ephemeralReplyErrorHandler, ephemeralReplyResponseTransformer, interact
 const baseImage: string = "./assets/images/lessgo.png";
 
 const lessgoCommandMetadata: CommandMetadata<{ user?: User, file?: string }, { files: AttachmentBuilder[] }> = {
-    category: "Images", description: "LESSGOOOOOOOOO 🧏🏿‍♂️🧏🏿‍♂️🧏🏿‍♂️", aliases: ["lessgo"],
+    hidden: true, category: "Images", description: "LESSGOOOOOOOOO 🧏🏿‍♂️🧏🏿‍♂️🧏🏿‍♂️", aliases: ["lessgo"],
     usage: "`ham lessgo` // LESSGOOOOes yourself\
     \n`ham lessgo @Emre` // LESSGOOOOes the shit out of Emre\
     \n`ham lessgo emre` // Same",

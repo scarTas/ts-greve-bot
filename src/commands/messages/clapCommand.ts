@@ -6,7 +6,7 @@ import { CommandMetadata } from "../types";
 const clap = ' :clap_tone5: ';
 
 const clapCommandMetadata: CommandMetadata<{ words: string[] }, { content: string }> = {
-    category: "Messages", description: "Claps some text.", aliases: ["clap"],
+    hidden: true, category: "Messages", description: "Claps some text.", aliases: ["clap"],
     usage: "`ham clap coglione` // c :clap_tone5: o :clap_tone5: g :clap_tone5: l :clap_tone5: i :clap_tone5: o :clap_tone5: n :clap_tone5: e\
     \n`ham clap sei un coglione` // sei :clap_tone5: un :clap_tone5: coglione",
     
